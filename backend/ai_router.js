@@ -113,7 +113,7 @@ OUTPUT STRICTLY JSON WITHOUT MARKDOWN. Format:
 
             if (parsedPlan.saveReport && sql) {
                 try {
-                    await sql\`INSERT INTO reportes_ventas (vendedor_id, datos) VALUES (\${vendedor_id}, \${parsedPlan.reportData})\`;
+                    await sql`INSERT INTO reportes_ventas (vendedor_id, datos) VALUES (${vendedor_id}, ${parsedPlan.reportData})`;
                     console.log("[SUPABASE] Reporte guardado con éxito.");
                 } catch (e) {
                     console.error("[SUPABASE] Error guardando reporte:", e);
