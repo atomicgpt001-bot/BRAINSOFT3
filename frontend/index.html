@@ -1,92 +1,195 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ICARO - Cerebro Corporativo</title>
+    <title>Obsidian Cyber Brain</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
     <!-- 3D Force Graph Library -->
     <script src="https://unpkg.com/3d-force-graph"></script>
+    <style>
+        .user-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .mode-toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            color: #00ffcc;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 34px;
+            height: 20px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #333;
+            transition: .4s;
+            border-radius: 20px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: #ff00ff;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #ff00ff;
+        }
+        input:checked + .slider:before {
+            transform: translateX(14px);
+            background-color: #000;
+        }
+    </style>
 </head>
 <body>
-    <!-- IDENTITY OVERLAY -->
-    <div id="identity-modal" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #00ffcc; font-family: 'Orbitron', sans-serif;">
-        <h1 style="text-shadow: 0 0 10px #00ffcc; margin-bottom: 30px;">[ ACCESO REQUERIDO ]</h1>
-        <p style="font-family: 'Rajdhani', sans-serif; font-size: 1.2rem; margin-bottom: 20px;">Por favor, identifícate para iniciar sincronización neuronal.</p>
-        
-        <input type="text" id="identity-username" placeholder="Usuario (ej. admin o tu nombre)" style="padding: 10px 20px; font-size: 1.2rem; background: transparent; border: 1px solid #00ffcc; color: #fff; text-align: center; width: 350px; margin-bottom: 10px; font-family: 'Rajdhani', sans-serif;" />
-        <input type="password" id="identity-password" placeholder="PIN (Solo Administrador)" style="padding: 10px 20px; font-size: 1.2rem; background: transparent; border: 1px solid #00ffcc; color: #fff; text-align: center; width: 350px; margin-bottom: 20px; font-family: 'Rajdhani', sans-serif;" />
-        
-        <button id="identity-submit" class="neon-btn" style="padding: 10px 30px; font-size: 1.2rem; margin-bottom: 10px;">Sincronizar como Admin</button>
-        <button id="identity-sales" class="sys-btn" style="padding: 10px 30px; font-size: 1rem; color: #aaa; border-color: #555;">Entrar como Vendedor</button>
-    </div>
-
-    <div class="app-container" id="main-container" style="display: none;">
+    <div class="app-container" id="main-app" style="display: none;">
         <!-- TOP DRAG BAR FOR ELECTRON -->
         <div class="titlebar">
-            <span>OBSIDIAN // ICARO CORTEX</span>
+            <span>OBSIDIAN // NEURAL CORTEX</span>
+            <button id="close-btn" class="sys-btn">X</button>
         </div>
 
         <div class="main-layout">
-            <!-- LEFT PANEL: MODULOS -->
-            <div class="sidebar">
-                <div class="panel-section">
-                    <button id="btn-cerebro" class="neon-btn" style="width: 100%; border-color: #fff; color: #fff; text-shadow: 0 0 5px #fff; margin-bottom: 15px;">
-                        [ CEREBRO VIRTUAL ]
-                    </button>
-                </div>
-                <div class="panel-section">
-                    <h2>HERRAMIENTAS</h2>
-                    <ul class="topic-list">
-                        <li data-action="precios" data-color="#00ffcc" class="active" id="btn-precios">Lista de Precios</li>
-                        <li data-action="imagenes" data-color="#ff00ff" id="btn-imagenes">Generador de Imágenes</li>
-                    </ul>
+            <!-- LEFT PANEL: TOPICS & MANAGEMENT -->
+            <div class="sidebar" id="left-panel">
+                <div class="panel-collapse-header" id="left-collapse-btn">
+                    <span class="panel-collapse-title">NEURAL HUB</span>
+                    <button class="collapse-icon">◀</button>
                 </div>
                 
-                <!-- Panel de Precios (Oculto por defecto) -->
-                <div id="price-panel" class="panel-section" style="display:none; flex: 1; overflow-y: auto;">
-                    <h2 style="color: #ffaa00;">PRECIOS ACTUALES</h2>
-                    <div id="prices-list" style="font-size: 0.9rem; margin-bottom: 10px; white-space: pre-wrap; font-family: 'Rajdhani', sans-serif;"></div>
-                    <textarea id="price-editor-text" style="width: 100%; height: 100px; background: rgba(0,0,0,0.5); color: #fff; border: 1px solid #ffaa00; display: none;"></textarea>
-                    <button id="btn-save-prices" class="sys-btn" style="width: 100%; margin-top: 5px; color: #ffaa00; border-color: #ffaa00; display: none;">Guardar Cambios</button>
+                <div class="panel-content">
+                <div class="panel-section">
+                    <button id="global-brain-btn" class="neon-btn" style="width: 100%; border-color: #fff; color: #fff; text-shadow: 0 0 5px #fff; margin-bottom: 15px;">
+                        [ CEREBRO GLOBAL ]
+                    </button>
+                    <button id="image-editor-btn" class="neon-btn" style="width: 100%; border-color: #ffaa00; color: #ffaa00; text-shadow: 0 0 5px #ffaa00; margin-bottom: 15px; display: none;">
+                        🖼️ EDITOR IMÁGENES
+                    </button>
+                    <button id="price-list-btn" class="neon-btn" style="width: 100%; border-color: #00ffcc; color: #00ffcc; text-shadow: 0 0 5px #00ffcc; margin-bottom: 15px;">
+                        💰 LISTADO DE PRECIOS
+                    </button>
                 </div>
 
-                <div class="voice-controls">
-                    <button id="mic-btn" class="neon-btn">
-                        <span class="icon">🎙</span> LINK VOICE
-                    </button>
-                    <div id="voice-status">Microphone Off</div>
+                <div id="dynamic-neuronas" style="display: flex; flex-direction: column; gap: 20px; overflow-y: auto; flex: 1;">
+                    <!-- Dynamic Neuronas and Ramas will be injected here -->
                 </div>
+                
+                <div class="voice-controls" style="margin-top: 15px;">
+                    <div class="user-controls">
+            <div class="mode-toggle-container" id="admin-mode-container" style="display: none;">
+                <span id="mode-label">Cauteloso</span>
+                <label class="switch">
+                    <input type="checkbox" id="autonomous-toggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <button class="sys-btn" id="tts-toggle-btn"><span class="icon">🔊</span> TTS: ON</button>
+            <button class="sys-btn" id="settings-btn" title="Configuraciones"><span class="icon">⚙️</span></button>
+            <div class="user-badge" id="user-badge">User</div>
+        </div>
+                </div>
+                </div> <!-- End panel-content -->
             </div>
 
-            <!-- CENTER PANEL: NEURAL GRAPH (ONLY ADMIN) -->
-            <div class="center-panel" id="center-panel" style="display: none;">
+            <!-- CENTER PANEL: NEURAL GRAPH & PREVIEW -->
+            <div class="center-panel" style="position: relative;">
                 <div class="graph-container" id="graph-container">
                     <!-- WebGL Graph will render here -->
+                </div>
+                <div id="file-preview-container" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #ffffff; z-index: 10;">
+                    <div style="background: #222; padding: 10px; display: flex; justify-content: space-between;">
+                        <span style="color: white; font-family: 'Orbitron';">File Preview</span>
+                        <button id="close-preview-btn" style="background: red; color: white; border: none; padding: 5px 10px; cursor: pointer;">X</button>
+                    </div>
+                    <iframe id="file-preview-frame" style="width: 100%; height: calc(100% - 40px); border: none;"></iframe>
                 </div>
             </div>
 
             <!-- RIGHT PANEL: CHAT INTERFACE -->
-            <div class="chat-panel">
-                <div class="chat-header">
-                    <h2>TERMINAL ICARO</h2>
-                    <span id="current-user-badge" style="color: #00ffcc; text-shadow: 0 0 5px #00ffcc;">[ Sesión Iniciada ]</span>
+            <div class="chat-panel" id="right-panel">
+                <div class="panel-collapse-header" id="right-collapse-btn">
+                    <button class="collapse-icon">▶</button>
+                    <span class="panel-collapse-title">TERMINAL UPLINK</span>
+                </div>
+                <div class="panel-content" style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
+                    <div class="chat-header" style="border-bottom: none; padding-bottom: 0;">
+                    <span id="current-topic-badge" style="color: #00ffcc; text-shadow: 0 0 5px #00ffcc;">[ Atomic ERP ]</span>
+                    <div style="margin-top: 10px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <span class="sys-btn" style="color: #ffaa00; border: 1px solid #ffaa00; padding: 2px 5px; font-size: 10px;">⚡ HYBRID UPLINK: GEMINI + OPENCLAE</span>
+                        <select id="advisor-select" style="background: #000; color: #00ffcc; border: 1px solid #00ffcc; padding: 2px 5px; font-size: 10px; font-family: 'Orbitron';">
+                            <option value="Asesor Humano 1">Asesor Humano 1</option>
+                            <option value="Asesor Humano 2">Asesor Humano 2</option>
+                            <option value="Soporte Técnico">Soporte Técnico</option>
+                        </select>
+                        <button id="assign-node-btn" class="sys-btn" style="color: #00ffcc; border-color: #00ffcc; font-size: 10px;">ASIGNAR NODO</button>
+                    </div>
                 </div>
                 <div class="chat-history" id="chat-history">
-                    <!-- Messages go here -->
+                    <div class="msg system">System initialized. Awaiting input.</div>
+                </div>
+                <div class="workflow-actions" id="workflow-actions" style="display: none; padding: 10px; gap: 10px; background: rgba(0,255,204,0.1); border-top: 1px solid #00ffcc;">
+                    <button id="wf-voice-btn" class="sys-btn" style="color: #fff; border-color: #00ffcc;">🎤 RESPONDER CON VOZ</button>
+                    <button id="wf-finish-btn" class="sys-btn" style="color: #fff; border-color: #ff3333;">📤 FINALIZAR Y ENVIAR</button>
                 </div>
                 <div class="chat-input-container">
                     <input type="file" id="file-upload" style="display: none;" multiple accept="image/*,application/pdf" />
                     <button id="attach-btn" class="sys-btn" style="min-width: 40px; padding: 0;">📎</button>
-                    <input type="text" id="chat-input" placeholder="Escribe un comando o consulta a ICARO..." />
+                    <input type="text" id="chat-input" placeholder="Enter neural command... (Drag & Drop files here)" />
+                    <button id="mic-btn" class="sys-btn" style="min-width: 40px; padding: 0;">🎙️</button>
                     <button id="send-btn" class="sys-btn">TRANSMIT</button>
                 </div>
+                <div style="font-size: 10px; color: #555; margin-top: 5px;" id="voice-status">Microphone Off</div>
                 <div id="attachment-preview" style="font-size: 10px; color: #00ffcc; margin-top: 5px;"></div>
+                </div> <!-- End panel-content -->
             </div>
         </div>
     </div>
     
-    <script src="app.js"></script>
+    <!-- AUTHENTICATION OVERLAY -->
+    <div id="auth-overlay" style="position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); z-index: 9999; display: flex; justify-content: center; align-items: center;">
+        <div style="background: #111; padding: 40px; border: 2px solid #00ffcc; border-radius: 10px; text-align: center; width: 350px;">
+            <h2 style="color: #00ffcc; font-family: 'Orbitron'; margin-bottom: 20px;">ACCESS TERMINAL</h2>
+            <input type="text" id="auth-username" placeholder="Usuario (ej. admin o tu nombre)" style="width: 100%; padding: 10px; margin-bottom: 10px; background: #222; color: #00ffcc; border: 1px solid #555;">
+            <input type="password" id="auth-password" placeholder="PIN (Solo Admin)" style="width: 100%; padding: 10px; margin-bottom: 20px; background: #222; color: #00ffcc; border: 1px solid #555;">
+            <button id="login-admin-btn" class="sys-btn" style="width: 100%; margin-bottom: 10px;">LOGIN COMO ADMIN</button>
+            <button id="login-sales-btn" class="sys-btn" style="width: 100%; border-color: #555; color: #aaa;">ENTRAR COMO VENDEDOR</button>
+            <div id="auth-error" style="color: red; margin-top: 10px; font-size: 12px;"></div>
+        </div>
+    </div>
+    
+    <!-- SETTINGS MODAL -->
+    <div id="settings-modal" style="display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); z-index: 9998; justify-content: center; align-items: center;">
+        <div style="background: #111; padding: 40px; border: 2px solid #ff00ff; border-radius: 10px; text-align: center; width: 400px;">
+            <h2 style="color: #ff00ff; font-family: 'Orbitron'; margin-bottom: 20px;">SYSTEM CONFIG</h2>
+            <p style="color: #aaa; font-size: 12px; margin-bottom: 10px;">Enlaza tu Bot de Telegram personal. Habla con BotFather, consigue el token y pégalo aquí.</p>
+            <input type="text" id="telegram-token-input" placeholder="Telegram Bot Token..." style="width: 100%; padding: 10px; margin-bottom: 20px; background: #222; color: #ff00ff; border: 1px solid #555;">
+            <button id="save-settings-btn" class="sys-btn" style="width: 100%; margin-bottom: 10px; color: #ff00ff; border-color: #ff00ff;">SAVE & RESTART BOT</button>
+            <button id="close-settings-btn" class="sys-btn" style="width: 100%;">CLOSE</button>
+        </div>
+    </div>
+    
+    <script>
+        // Provide close button logic
+        document.getElementById('close-btn').addEventListener('click', () => {
+            window.close();
+        });
+    </script>
+    <script src="neural_graph.js"></script>
+    <script src="renderer.js"></script>
 </body>
 </html>
