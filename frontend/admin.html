@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atomic Admin Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        .admin-layout { display: flex; height: calc(100vh - 40px); background: #0a0a0a; color: #fff; font-family: 'Rajdhani', sans-serif; }
+        .admin-sidebar { width: 250px; background: rgba(0, 255, 204, 0.05); border-right: 1px solid #00ffcc; padding: 20px; }
+        .admin-content { flex: 1; padding: 20px; overflow-y: auto; }
+        .log-entry { margin-bottom: 10px; padding: 10px; border-left: 3px solid #00ffcc; background: rgba(255,255,255,0.05); }
+        .log-entry.user { border-color: #00ffcc; }
+        .log-entry.ai { border-color: #ff00ff; margin-left: 20px; }
+        .meta-text { font-size: 0.8rem; color: #888; }
+        .report-card { border: 1px solid #ffaa00; padding: 15px; margin-bottom: 15px; background: rgba(255,170,0,0.1); border-radius: 5px; }
+        .nav-btn { display: block; width: 100%; text-align: left; background: none; border: none; color: #00ffcc; font-family: 'Orbitron', sans-serif; font-size: 1.1rem; cursor: pointer; padding: 10px; margin-bottom: 10px; border-bottom: 1px solid transparent; }
+        .nav-btn:hover { border-bottom: 1px solid #00ffcc; background: rgba(0,255,204,0.1); }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- TOP DRAG BAR FOR ELECTRON -->
+        <div class="titlebar">
+            <span style="color:#ffaa00;">[ ADMIN MASTER ] ATOMIC NEURAL NETWORK</span>
+            <button id="close-btn" class="sys-btn" style="color:#ff3333; border-color:#ff3333;">X</button>
+        </div>
+
+        <div class="admin-layout">
+            <div class="admin-sidebar">
+                <h2 style="font-family: 'Orbitron', sans-serif; margin-bottom: 30px; font-size: 1.2rem; text-shadow: 0 0 5px #ffaa00; color: #ffaa00;">PANEL DE CONTROL</h2>
+                <button class="nav-btn" onclick="loadChats()">Conversaciones en Vivo</button>
+                <button class="nav-btn" style="color: #ffaa00;" onclick="loadReports()">Reportes de Ventas</button>
+                <button class="nav-btn" style="color: #ff3333; margin-top: 50px;" onclick="logout()">Cerrar Sesión</button>
+            </div>
+            <div class="admin-content" id="main-content">
+                <h1 style="font-family: 'Orbitron', sans-serif; color: #00ffcc;">Selecciona un módulo</h1>
+                <p>Monitoreo global de los cerebros corporativos de los asesores.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('close-btn').addEventListener('click', () => { window.close(); });
+
+        async function loadChats() {
+            const content = document.getElementById('main-content');
+            content.innerHTML = '<h1 style="font-family: \'Orbitron\', sans-serif; color: #00ffcc;">Conversaciones en Vivo</h1><p>Cargando enlaces neuronales...</p>';
+            
+            try {
+                const res = await fetch('http://localhost:3050/api/admin/conversaciones');
+                const data = await res.json();
+                
+                content.innerHTML = '<h1 style="font-family: \'Orbitron\', sans-serif; color: #00ffcc; margin-bottom:20px;">Conversaciones en Vivo</h1>';
+                
+                data.forEach(log => {
+                    const div = document.createElement('div');
+                    div.className = `log-entry ${log.emisor}`;
+                    div.innerHTML = `
+                        <div class="meta-text">Vendedor: <b>${log.vendedor_id}</b> | [${new Date(log.fecha).toLocaleString()}]</div>
+                        <div style="margin-top: 5px;">${log.mensaje}</div>
+                    `;
+                    content.appendChild(div);
+                });
+            } catch (e) {
+                content.innerHTML += `<p style="color:red;">Error: ${e.message}</p>`;
+            }
+        }
+
+        async function loadReports() {
+            const content = document.getElementById('main-content');
+            content.innerHTML = '<h1 style="font-family: \'Orbitron\', sans-serif; color: #ffaa00;">Reportes de Ventas</h1><p>Compilando métricas...</p>';
+            
+            try {
+                const res = await fetch('http://localhost:3050/api/admin/reportes');
+                const data = await res.json();
+                
+                content.innerHTML = '<h1 style="font-family: \'Orbitron\', sans-serif; color: #ffaa00; margin-bottom:20px;">Reportes de Ventas y Avances</h1>';
+                
+                data.forEach(rep => {
+                    const div = document.createElement('div');
+                    div.className = `report-card`;
+                    div.innerHTML = `
+                        <div class="meta-text" style="color:#ffaa00;">Vendedor: <b>${rep.vendedor_id}</b> | [${new Date(rep.fecha).toLocaleString()}]</div>
+                        <div style="margin-top: 10px; font-size: 1.1rem;">
+                            <pre style="background: rgba(0,0,0,0.5); padding: 10px; border: 1px solid #333; overflow-x: auto; font-family: monospace;">${JSON.stringify(rep.datos, null, 2)}</pre>
+                        </div>
+                    `;
+                    content.appendChild(div);
+                });
+            } catch (e) {
+                content.innerHTML += `<p style="color:red;">Error: ${e.message}</p>`;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('vendedor_id');
+            window.location.href = 'index.html';
+        }
+
+        // Auto-load chats
+        loadChats();
+    </script>
+</body>
+</html>

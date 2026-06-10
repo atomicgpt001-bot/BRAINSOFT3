@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Obsidian Cyber Brain</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+    <!-- 3D Force Graph Library -->
+    <script src="https://unpkg.com/3d-force-graph"></script>
+</head>
+<body>
+    <!-- IDENTITY OVERLAY -->
+    <div id="identity-modal" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #00ffcc; font-family: 'Orbitron', sans-serif;">
+        <h1 style="text-shadow: 0 0 10px #00ffcc; margin-bottom: 30px;">[ ENLACE NEURONAL REQUERIDO ]</h1>
+        <p style="font-family: 'Rajdhani', sans-serif; font-size: 1.2rem; margin-bottom: 20px;">Por favor, identifícate para iniciar sincronización con la base de datos central.</p>
+        <input type="text" id="identity-input" placeholder="Nombre de Vendedor o ADMIN_MASTER" style="padding: 10px 20px; font-size: 1.2rem; background: transparent; border: 1px solid #00ffcc; color: #fff; text-align: center; width: 350px; margin-bottom: 20px; font-family: 'Rajdhani', sans-serif;" />
+        <button id="identity-submit" class="neon-btn" style="padding: 10px 30px; font-size: 1.2rem;">Sincronizar</button>
+    </div>
+
+    <div class="app-container">
+        <!-- TOP DRAG BAR FOR ELECTRON -->
+        <div class="titlebar">
+            <span>OBSIDIAN // NEURAL CORTEX</span>
+            <button id="close-btn" class="sys-btn">X</button>
+        </div>
+
+        <div class="main-layout">
+            <!-- LEFT PANEL: TOPICS & MANAGEMENT -->
+            <div class="sidebar">
+                <div class="panel-section">
+                    <button id="global-brain-btn" class="neon-btn" style="width: 100%; border-color: #fff; color: #fff; text-shadow: 0 0 5px #fff; margin-bottom: 15px;">
+                        [ CEREBRO GLOBAL ]
+                    </button>
+                </div>
+                <div class="panel-section">
+                    <h2>PROJECTS HUB</h2>
+                    <ul id="project-list" class="topic-list">
+                        <li data-topic="Atomic" data-color="#00ffcc" class="active">Atomic ERP</li>
+                        <li data-topic="Raspberry" data-color="#ff00ff">Raspberry Pi</li>
+                        <li data-topic="Soft 3" data-color="#ffff00">Soft 3</li>
+                    </ul>
+                </div>
+
+                <div class="panel-section">
+                    <h2>MANAGEMENT</h2>
+                    <ul id="management-list" class="topic-list">
+                        <li data-topic="Empleados" data-color="#ff3333">Empleados</li>
+                        <li data-topic="Coordinadora" data-color="#ff9900">Coordinadora</li>
+                        <li data-topic="Supervisora" data-color="#0066ff">Supervisora</li>
+                    </ul>
+                </div>
+
+                <div class="panel-section">
+                    <h2>SOCIAL MEDIA (PENDING)</h2>
+                    <ul id="social-list" class="topic-list">
+                        <li data-topic="Redes Sociales" data-color="#ff0055">Tareas Pendientes</li>
+                    </ul>
+                </div>
+                
+                <div class="voice-controls">
+                    <button id="mic-btn" class="neon-btn">
+                        <span class="icon">🎙</span> LINK VOICE
+                    </button>
+                    <div id="voice-status">Microphone Off</div>
+                </div>
+            </div>
+
+            <!-- CENTER PANEL: NEURAL GRAPH -->
+            <div class="center-panel">
+                <div class="graph-container" id="graph-container">
+                    <!-- WebGL Graph will render here -->
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL: CHAT INTERFACE -->
+            <div class="chat-panel">
+                <div class="chat-header">
+                    <h2>TERMINAL UPLINK</h2>
+                    <span id="current-topic-badge" style="color: #00ffcc; text-shadow: 0 0 5px #00ffcc;">[ Atomic ERP ]</span>
+                    <div style="margin-top: 10px;">
+                        <span class="sys-btn" style="color: #ffaa00; border: 1px solid #ffaa00; padding: 2px 5px; font-size: 10px;">⚡ HYBRID UPLINK: GEMINI + OPENCLAE</span>
+                    </div>
+                </div>
+                <div class="chat-history" id="chat-history">
+                    <div class="msg system">System initialized. Awaiting input.</div>
+                </div>
+                <div class="workflow-actions" id="workflow-actions" style="display: none; padding: 10px; gap: 10px; background: rgba(0,255,204,0.1); border-top: 1px solid #00ffcc;">
+                    <button id="wf-voice-btn" class="sys-btn" style="color: #fff; border-color: #00ffcc;">🎤 RESPONDER CON VOZ</button>
+                    <button id="wf-finish-btn" class="sys-btn" style="color: #fff; border-color: #ff3333;">📤 FINALIZAR Y ENVIAR</button>
+                </div>
+                <div class="chat-input-container">
+                    <input type="file" id="file-upload" style="display: none;" multiple accept="image/*,application/pdf" />
+                    <button id="attach-btn" class="sys-btn" style="min-width: 40px; padding: 0;">📎</button>
+                    <input type="text" id="chat-input" placeholder="Enter neural command... (Drag & Drop files here)" />
+                    <button id="mic-btn" class="sys-btn" style="min-width: 40px; padding: 0;">🎙️</button>
+                    <button id="send-btn" class="sys-btn">TRANSMIT</button>
+                </div>
+                <div style="font-size: 10px; color: #555; margin-top: 5px;" id="voice-status">Microphone Off</div>
+                <div id="attachment-preview" style="font-size: 10px; color: #00ffcc; margin-top: 5px;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Provide close button logic
+        document.getElementById('close-btn').addEventListener('click', () => {
+            window.close();
+        });
+    </script>
+    <script src="neural_graph.js"></script>
+    <script src="renderer.js"></script>
+</body>
+</html>
