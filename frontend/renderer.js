@@ -551,7 +551,7 @@ function checkAuth() {
         // Chat inicial
         chatHistory.innerHTML = '';
         if (vendedorId === "Vendedor Nuevo") {
-            appendSystemMessage("Hola, ¿con qué te puedo ayudar hoy? Si eres nuevo, dime cómo te llamas y cómo te gustaría llamarme a mí.");
+            appendSystemMessage("SOY TU ASISTENTE. DIME CÓMO TE GUSTARÍA QUE ME LLAME, Y TÚ, ¿CÓMO TE LLAMAS?");
         } else {
             appendSystemMessage(`Hola ${vendedorId}, ¿con qué te puedo ayudar hoy?`);
         }

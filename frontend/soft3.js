@@ -84,7 +84,7 @@ function addMessage(text, isUser) {
 function startChat() {
     chatHistory.innerHTML = '';
     if (vendedor_id === "Cliente_Soft3") {
-        addMessage(`Hola, ¿con qué te puedo ayudar hoy? Si eres nuevo, dime cómo te llamas y cómo te gustaría llamarme a mí.`, false);
+        addMessage(`SOY TU ASISTENTE DE SOFT 3. ¿En qué puedo ayudarte?`, false);
     } else {
         addMessage(`Hola ${vendedor_id}, ¿con qué te puedo ayudar hoy?`, false);
     }

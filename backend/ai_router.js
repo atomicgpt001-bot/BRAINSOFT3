@@ -46,10 +46,17 @@ class AIRouter {
                 imageParts.push(fileToGenerativePart(file.path, file.mimetype));
             }
             
+            let profiles = {};
+            try {
+                profiles = JSON.parse(fs.readFileSync(path.join(__dirname, 'profiles.json'), 'utf8'));
+            } catch(e) {}
+            let userProfile = profiles[vendedor_id] || { userName: vendedor_id, botName: persona === 'soft3' ? 'Soft 3' : 'Icaro' };
+
             let prompt = "";
             if (persona === 'soft3') {
-                prompt = `You are the official bot of Soft 3. You must introduce yourself as "el bot de Soft 3" when asked.
-The user talking to you is a salesperson/client.
+                prompt = `You are the official bot of Soft 3. 
+The user talking to you is named: "${userProfile.userName}".
+The user wants you to act and be called as: "${userProfile.botName}".
 The user is talking about: "${currentTopic}".
 Message from user: "${message}"
 Has attached files: ${files.length > 0 ? 'Yes' : 'No'}
@@ -58,7 +65,8 @@ Your goal is to act as their corporate assistant and help them with queries abou
 Task: Analyze the message.`;
             } else {
                 prompt = `You are the Virtual Corporate Brain of Atomic (a tech and sales company).
-The user talking to you is a salesperson named: "${vendedor_id}".
+The user talking to you is named: "${userProfile.userName}" (ID: ${vendedor_id}).
+The user wants you to act and be called as: "${userProfile.botName}".
 The user is talking about: "${currentTopic}".
 Message from user: "${message}"
 Has attached files: ${files.length > 0 ? 'Yes' : 'No'}
@@ -76,6 +84,8 @@ OUTPUT STRICTLY JSON WITHOUT MARKDOWN. Format:
   "nodeContent": "Structured content to save to Obsidian" (if creating node),
   "saveReport": boolean (true if the user provided sales metrics, client updates, or daily stats that should be saved to the database),
   "reportData": { "tipo": "ventas|cliente|otro", "resumen": "...", "monto": 0 } (only if saveReport is true),
+  "saveProfile": boolean (true ONLY if the user tells you their name, or tells you how they want YOU to be called),
+  "userProfile": { "userName": "extracted user name", "botName": "extracted name they want to call you" } (only if saveProfile is true),
   "instructionsForExecutor": "Tell the local AI what to respond to the user in Spanish.",
   "showWorkflowButtons": boolean (true if the user is in a guided workflow),
   "hideWorkflowButtons": boolean (true if the user wants to end)
@@ -105,10 +115,25 @@ OUTPUT STRICTLY JSON WITHOUT MARKDOWN. Format:
                 parsedPlan = {
                     shouldCreateNode: false,
                     saveReport: false,
-                    instructionsForExecutor: "Responde amablemente como el Cerebro Corporativo.",
+                    saveProfile: false,
+                    instructionsForExecutor: "Responde amablemente.",
                     showWorkflowButtons: false,
                     hideWorkflowButtons: false
                 };
+            }
+
+            if (parsedPlan.saveProfile && parsedPlan.userProfile) {
+                try {
+                    profiles[vendedor_id] = { 
+                        userName: parsedPlan.userProfile.userName || userProfile.userName, 
+                        botName: parsedPlan.userProfile.botName || userProfile.botName 
+                    };
+                    fs.writeFileSync(path.join(__dirname, 'profiles.json'), JSON.stringify(profiles, null, 2));
+                    console.log("[PROFILE] Perfil guardado:", profiles[vendedor_id]);
+                    userProfile = profiles[vendedor_id];
+                } catch(e) {
+                    console.error("[PROFILE] Error guardando perfil", e);
+                }
             }
 
             if (parsedPlan.saveReport && sql) {
@@ -125,19 +150,19 @@ OUTPUT STRICTLY JSON WITHOUT MARKDOWN. Format:
             try {
                 let executorPrompt = "";
                 if (persona === 'soft3') {
-                    executorPrompt = `You are the official bot of Soft 3.
+                    executorPrompt = `You are ${userProfile.botName}.
 Context Topic: "${currentTopic}"
 User Input: "${message}"
 Directive: ${parsedPlan.instructionsForExecutor}
 
-CRITICAL RULE: Output ONLY the exact response text that should be shown to the user. Speak directly to the user in Spanish using a professional, sober, and corporate tone.`;
+CRITICAL RULE: Output ONLY the exact response text that should be shown to the user. Speak directly to the user "${userProfile.userName}" in Spanish using a professional, sober, and corporate tone.`;
                 } else {
-                    executorPrompt = `You are the Virtual Corporate Brain of Atomic.
+                    executorPrompt = `You are ${userProfile.botName} (a Virtual Corporate Brain).
 Context Topic: "${currentTopic}"
 User Input: "${message}"
 Directive: ${parsedPlan.instructionsForExecutor}
 
-CRITICAL RULE: Output ONLY the exact response text that should be shown to the user. Speak directly to the user "${vendedor_id}" in Spanish using a professional but futuristic corporate tone.`;
+CRITICAL RULE: Output ONLY the exact response text that should be shown to the user. Speak directly to the user "${userProfile.userName}" in Spanish using a professional but futuristic corporate tone.`;
                 }
 
                 const executorModel = this.genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
