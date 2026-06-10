@@ -32,7 +32,7 @@ class AIRouter {
         this.genAI = new GoogleGenerativeAI(apiKey);
     }
 
-    async processMessage(message, currentTopic, files = [], obsidianManager, vendedor_id = 'Unknown', sql = null) {
+    async processMessage(message, currentTopic, files = [], obsidianManager, vendedor_id = 'Unknown', sql = null, persona = 'icaro') {
         try {
             if (!this.genAI.apiKey || this.genAI.apiKey === 'your_gemini_api_key_here') {
                 return { response: "Error: API KEY de Gemini no configurada.", shouldCreateNode: false, nodeData: null };
@@ -46,7 +46,18 @@ class AIRouter {
                 imageParts.push(fileToGenerativePart(file.path, file.mimetype));
             }
             
-            const prompt = `You are the Virtual Corporate Brain of Atomic (a tech and sales company).
+            let prompt = "";
+            if (persona === 'soft3') {
+                prompt = `You are the official bot of Soft 3. You must introduce yourself as "el bot de Soft 3" when asked.
+The user talking to you is a salesperson/client.
+The user is talking about: "${currentTopic}".
+Message from user: "${message}"
+Has attached files: ${files.length > 0 ? 'Yes' : 'No'}
+
+Your goal is to act as their corporate assistant and help them with queries about the Soft 3 architecture.
+Task: Analyze the message.`;
+            } else {
+                prompt = `You are the Virtual Corporate Brain of Atomic (a tech and sales company).
 The user talking to you is a salesperson named: "${vendedor_id}".
 The user is talking about: "${currentTopic}".
 Message from user: "${message}"
@@ -54,8 +65,10 @@ Has attached files: ${files.length > 0 ? 'Yes' : 'No'}
 
 Your goal is to act as their virtual assistant, help them, and PROACTIVELY ask for their daily sales reports, client updates, and metrics.
 If they provide metrics or client updates, you MUST save them using "saveReport" = true.
-
-Task: Analyze the message.
+Task: Analyze the message.`;
+            }
+            
+            prompt += `
 OUTPUT STRICTLY JSON WITHOUT MARKDOWN. Format:
 {
   "shouldCreateNode": boolean (true if you need to save a general note to Obsidian),
@@ -110,12 +123,22 @@ OUTPUT STRICTLY JSON WITHOUT MARKDOWN. Format:
             // FASE 2: EJECUTOR (Gemini Dual)
             let finalResponseText = "Conexión con Ejecutor fallida.";
             try {
-                const executorPrompt = `You are the Virtual Corporate Brain of Atomic.
+                let executorPrompt = "";
+                if (persona === 'soft3') {
+                    executorPrompt = `You are the official bot of Soft 3.
+Context Topic: "${currentTopic}"
+User Input: "${message}"
+Directive: ${parsedPlan.instructionsForExecutor}
+
+CRITICAL RULE: Output ONLY the exact response text that should be shown to the user. Speak directly to the user in Spanish using a professional, sober, and corporate tone.`;
+                } else {
+                    executorPrompt = `You are the Virtual Corporate Brain of Atomic.
 Context Topic: "${currentTopic}"
 User Input: "${message}"
 Directive: ${parsedPlan.instructionsForExecutor}
 
 CRITICAL RULE: Output ONLY the exact response text that should be shown to the user. Speak directly to the user "${vendedor_id}" in Spanish using a professional but futuristic corporate tone.`;
+                }
 
                 const executorModel = this.genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
                 const localRes = await executeWithRetry(() => executorModel.generateContent(executorPrompt));

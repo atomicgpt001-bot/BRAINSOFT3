@@ -7,8 +7,28 @@ class ObsidianManager {
         this.vaultPath = vaultPath || path.join(os.homedir(), 'obsidian_vault');
         if (!fs.existsSync(this.vaultPath)) {
             fs.mkdirSync(this.vaultPath, { recursive: true });
-            console.log(`[OBSIDIAN] Created mock vault at ${this.vaultPath}`);
+            console.log(`[OBSIDIAN] Created new vault at ${this.vaultPath}`);
         }
+
+        // Initialize core folders for both brains
+        const coreFolders = [
+            'Núcleo Principal Soft3',
+            'Ramas',
+            'Resumen',
+            'Auditorías',
+            'Logs Errores',
+            'Logs Commits',
+            'Sugerencias Bot',
+            'Ventas', // ICARO
+            'Reportes Diarios' // ICARO
+        ];
+
+        coreFolders.forEach(folder => {
+            const folderPath = path.join(this.vaultPath, folder);
+            if (!fs.existsSync(folderPath)) {
+                fs.mkdirSync(folderPath, { recursive: true });
+            }
+        });
     }
 
     createNode(topic, title, content) {

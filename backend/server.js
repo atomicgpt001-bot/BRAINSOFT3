@@ -50,15 +50,15 @@ if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_BOT_TOKEN !== 'your_t
 const sql = require('postgres')('postgresql://postgres.kkvujjyohspdynxltwqo:Jp2024013gg002@aws-1-us-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true');
 
 app.post('/api/chat', async (req, res) => {
-    const { message, topic, vendedor_id } = req.body;
-    console.log(`[CHAT] Recibido: ${message} (Tema: ${topic}, Vendedor: ${vendedor_id})`);
+    const { message, topic, vendedor_id, persona } = req.body;
+    console.log(`[CHAT] Recibido: ${message} (Tema: ${topic}, Vendedor: ${vendedor_id}, Persona: ${persona})`);
     
     // Log user message
     if (vendedor_id) {
         await sql`INSERT INTO conversaciones (vendedor_id, emisor, mensaje) VALUES (${vendedor_id}, 'user', ${message})`.catch(e => console.error(e));
     }
     
-    const result = await ai.processMessage(message, topic, [], obsidian, vendedor_id, sql);
+    const result = await ai.processMessage(message, topic, [], obsidian, vendedor_id, sql, persona);
     
     // Log AI response
     if (vendedor_id && result.response) {
@@ -74,16 +74,16 @@ app.post('/api/chat', async (req, res) => {
 });
 
 app.post('/api/chat-upload', upload.array('files'), async (req, res) => {
-    const { message, topic, vendedor_id } = req.body;
+    const { message, topic, vendedor_id, persona } = req.body;
     const files = req.files || [];
-    console.log(`[CHAT UPLOAD] Recibido: ${message} (Tema: ${topic}, Vendedor: ${vendedor_id}) - ${files.length} archivos.`);
+    console.log(`[CHAT UPLOAD] Recibido: ${message} (Tema: ${topic}, Vendedor: ${vendedor_id}, Persona: ${persona}) - ${files.length} archivos.`);
     
     // Log user message
     if (vendedor_id) {
         await sql`INSERT INTO conversaciones (vendedor_id, emisor, mensaje) VALUES (${vendedor_id}, 'user', ${message + ' [Archivos Adjuntos]'})`.catch(e => console.error(e));
     }
     
-    const result = await ai.processMessage(message, topic, files, obsidian, vendedor_id, sql);
+    const result = await ai.processMessage(message, topic, files, obsidian, vendedor_id, sql, persona);
     
     // Log AI response
     if (vendedor_id && result.response) {
@@ -100,6 +100,33 @@ app.post('/api/chat-upload', upload.array('files'), async (req, res) => {
 
 app.get('/api/vault', (req, res) => {
     res.json(obsidian.getVaultStructure());
+});
+
+app.get('/api/graph', (req, res) => {
+    const structure = obsidian.getVaultStructure();
+    const nodes = [];
+    const links = [];
+    
+    // Core node
+    nodes.push({ id: 'Soft 3', group: 0, label: 'Núcleo Principal Soft 3' });
+
+    structure.forEach((folder, idx) => {
+        // Folder node
+        const folderId = folder.topic;
+        nodes.push({ id: folderId, group: 1, label: folder.topic });
+        // Link core to folder
+        links.push({ source: 'Soft 3', target: folderId, value: 2 });
+        
+        // Files in folder
+        folder.files.forEach(file => {
+            const fileId = `${folder.topic}/${file}`;
+            nodes.push({ id: fileId, group: 2, label: file });
+            // Link folder to file
+            links.push({ source: folderId, target: fileId, value: 1 });
+        });
+    });
+
+    res.json({ nodes, links });
 });
 
 app.get('/api/admin/conversaciones', async (req, res) => {
