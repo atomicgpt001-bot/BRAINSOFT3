@@ -160,3 +160,25 @@ app.post('/api/node/summary', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`[NEURAL CORE] Backend running on port ${PORT}`);
 });
+
+// --- PRICE LIST ENDPOINTS ---
+app.get('/api/prices', (req, res) => {
+    try {
+        const content = obsidian.readPriceList();
+        res.json({ content });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Error reading prices' });
+    }
+});
+
+app.post('/api/prices', (req, res) => {
+    try {
+        const { content } = req.body;
+        obsidian.writePriceList(content);
+        res.json({ success: true });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Error writing prices' });
+    }
+});

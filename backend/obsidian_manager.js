@@ -82,6 +82,28 @@ ${content}
         }
         return null;
     }
+
+    // --- PRICE LIST METHODS ---
+    getPriceListPath() {
+        return path.join(this.vaultPath, 'Ventas', 'Lista de Precios.md');
+    }
+
+    readPriceList() {
+        const filePath = this.getPriceListPath();
+        if (fs.existsSync(filePath)) {
+            return fs.readFileSync(filePath, 'utf-8');
+        }
+        return "Producto Ejemplo - $10.00\nServicio Básico - $50.00";
+    }
+
+    writePriceList(content) {
+        const filePath = this.getPriceListPath();
+        const dir = path.dirname(filePath);
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+        fs.writeFileSync(filePath, content, 'utf-8');
+    }
 }
 
 module.exports = ObsidianManager;

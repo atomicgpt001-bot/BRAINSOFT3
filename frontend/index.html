@@ -3,71 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cerebro Icaro</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <!-- Force Graph Library -->
-    <script src="//unpkg.com/force-graph"></script>
+    <title>Cerebro Icaro - Modo Cyberpunk</title>
+    <link rel="stylesheet" href="icaro.css">
+    <!-- Solo para admin -->
+    <script src="//unpkg.com/3d-force-graph"></script>
 </head>
 <body>
-    <div id="app-container">
-        <!-- Sidebar: Chat History -->
-        <div id="sidebar">
-            <div class="sidebar-header">
-                <h2>Cerebro Icaro</h2>
-                <button id="new-chat-btn">+ Nuevo Chat</button>
-            </div>
-            <div id="chat-list">
-                <!-- Chat sessions will be injected here -->
-            </div>
-            <div class="sidebar-footer">
-                <div class="user-info">
-                    <span id="current-user">Usuario: Admin</span>
-                </div>
-            </div>
-        </div>
 
-        <!-- Main Content: Split Screen -->
-        <div id="main-content">
-            <!-- Left Panel: 2D Brain Graph -->
-            <div id="graph-panel">
-                <div class="panel-header">
-                    <h3>Mapa Neuronal Icaro</h3>
-                    <span id="current-node-indicator">Rama: General</span>
-                </div>
-                <div id="graph-container"></div>
-            </div>
-
-            <!-- Right Panel: Chat Interface -->
-            <div id="chat-panel">
-                <div class="panel-header">
-                    <h3 id="chat-title">Sesión Actual</h3>
-                </div>
-                
-                <div id="chat-history">
-                    <div class="message ai-message">
-                        <div class="message-content">
-                            Hola, soy ICARO. Haz clic en una rama del mapa neuronal a la izquierda para enfocarme en un tema, o pregúntame lo que necesites sobre el equipo de ventas.
-                        </div>
-                    </div>
-                </div>
-
-                <div id="chat-input-area">
-                    <form id="chat-form">
-                        <textarea id="message-input" placeholder="Escribe un mensaje..." rows="1"></textarea>
-                        <button type="submit" id="send-btn">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M2.01 21L23 12L2.01 3L2 10L17 12L2 14L2.01 21Z" fill="currentColor"/>
-                            </svg>
-                        </button>
-                    </form>
-                </div>
-            </div>
+    <!-- Login Modal -->
+    <div id="login-overlay">
+        <div class="login-box">
+            <h2>Acceso a Sistema</h2>
+            <input type="text" id="username" placeholder="Usuario" autocomplete="off">
+            <input type="password" id="password" placeholder="PIN / Contraseña" autocomplete="off">
+            <button id="btn-login-admin">Entrar como Admin</button>
+            <button id="btn-login-sales" class="secondary">Entrar como Vendedor</button>
         </div>
     </div>
-    
+
+    <!-- Main App -->
+    <div id="main-container">
+        
+        <!-- Sidebar: Price List -->
+        <div id="sidebar">
+            <div class="sidebar-header">
+                <h2>Lista de Precios</h2>
+            </div>
+            <div id="prices-list">
+                <!-- Precios cargados por JS -->
+            </div>
+            
+            <!-- Editor solo para admin -->
+            <div id="editor-panel">
+                <textarea id="price-editor-text" placeholder="Formato: Producto - Precio"></textarea>
+                <button id="btn-save-prices" style="width: 100%; margin-top: 5px;">Guardar Precios</button>
+            </div>
+        </div>
+
+        <!-- Center: 3D Graph (Admin only) -->
+        <div id="center-panel">
+            <div id="graph-container"></div>
+        </div>
+
+        <!-- Right Panel: Chat -->
+        <div id="chat-panel">
+            <div class="panel-header">
+                <h3 id="chat-title">Terminal Icaro</h3>
+            </div>
+            <div id="chat-history">
+                <div class="message ai-message">
+                    <div class="message-content">
+                        Conexión establecida. Soy ICARO, Inteligencia de Ventas de Atomic.
+                    </div>
+                </div>
+            </div>
+            <div id="chat-input-container">
+                <textarea id="chat-input" placeholder="Escribe un comando o consulta..." rows="1"></textarea>
+                <button id="send-btn">Enviar</button>
+            </div>
+        </div>
+
+    </div>
+
     <script src="app.js"></script>
 </body>
 </html>

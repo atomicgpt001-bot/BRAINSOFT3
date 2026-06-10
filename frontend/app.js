@@ -1,162 +1,181 @@
-let currentTopic = "General";
-let sessionId = "sesion-" + Date.now();
-const vendedor_id = "Administrador";
+let isAdmin = false;
+let vendedorId = "Vendedor";
+let sessionId = Date.now().toString();
 
-// DOM Elements
+// Elements
+const loginOverlay = document.getElementById('login-overlay');
+const mainContainer = document.getElementById('main-container');
+const btnLoginAdmin = document.getElementById('btn-login-admin');
+const btnLoginSales = document.getElementById('btn-login-sales');
+const usernameInput = document.getElementById('username');
+const passwordInput = document.getElementById('password');
+
+const chatInput = document.getElementById('chat-input');
+const sendBtn = document.getElementById('send-btn');
 const chatHistory = document.getElementById('chat-history');
-const chatForm = document.getElementById('chat-form');
-const messageInput = document.getElementById('message-input');
-const currentNodeIndicator = document.getElementById('current-node-indicator');
-const chatList = document.getElementById('chat-list');
-const newChatBtn = document.getElementById('new-chat-btn');
+const pricesList = document.getElementById('prices-list');
+const editorPanel = document.getElementById('editor-panel');
+const priceEditorText = document.getElementById('price-editor-text');
+const btnSavePrices = document.getElementById('btn-save-prices');
+const graphContainer = document.getElementById('graph-container');
 
-// Initialize 2D Graph
-let Graph;
+// Login Logic
+btnLoginAdmin.addEventListener('click', () => {
+    const user = usernameInput.value.trim().toLowerCase();
+    const pass = passwordInput.value.trim();
+    if (user === 'admin' && pass === '1234') {
+        isAdmin = true;
+        vendedorId = "Admin";
+        enterApp();
+    } else {
+        alert("Credenciales incorrectas");
+    }
+});
 
-function initGraph() {
-    const elem = document.getElementById('graph-container');
+btnLoginSales.addEventListener('click', () => {
+    const user = usernameInput.value.trim() || "Vendedor";
+    isAdmin = false;
+    vendedorId = user;
+    enterApp();
+});
+
+function enterApp() {
+    loginOverlay.style.display = 'none';
+    mainContainer.style.display = 'flex';
     
-    fetch('/api/graph')
-        .then(res => res.json())
-        .then(gData => {
-            Graph = ForceGraph()(elem)
-                .graphData(gData)
-                .nodeLabel('label')
-                .nodeColor(node => {
-                    if (node.group === 0) return '#003366'; // Soft 3 Core
-                    if (node.group === 1) return '#0056b3'; // Folders
-                    return '#007bff'; // Files
-                })
-                .nodeRelSize(6)
-                .linkColor(() => '#dee2e6')
-                .onNodeClick(node => {
-                    // Update Context
-                    currentTopic = node.label;
-                    currentNodeIndicator.textContent = `Rama: ${currentTopic}`;
-                    
-                    // Center Graph
-                    Graph.centerAt(node.x, node.y, 1000);
-                    Graph.zoom(8, 2000);
-                    
-                    // System message
-                    addMessage(`Cambiaste el enfoque a: ${currentTopic}. ¿En qué te ayudo con esta rama?`, false);
-                });
-                
-            // Setup resizing
-            window.addEventListener('resize', () => {
-                Graph.width(elem.clientWidth).height(elem.clientHeight);
-            });
-        });
+    fetchPrices();
+
+    if (isAdmin) {
+        editorPanel.style.display = 'block';
+        graphContainer.style.display = 'block';
+        init3DGraph();
+    } else {
+        editorPanel.style.display = 'none';
+        graphContainer.style.display = 'none';
+    }
 }
 
-function addMessage(text, isUser) {
+// Price List Logic
+async function fetchPrices() {
+    try {
+        const res = await fetch('/api/prices');
+        const data = await res.json();
+        const lines = data.content.split('\n');
+        
+        pricesList.innerHTML = '';
+        lines.forEach(line => {
+            if (line.trim() !== '') {
+                const parts = line.split('-');
+                const name = parts[0] ? parts[0].trim() : '';
+                const price = parts[1] ? parts[1].trim() : '';
+                if (name) {
+                    const div = document.createElement('div');
+                    div.className = 'price-item';
+                    div.innerHTML = `<span>${name}</span><span>${price ? '- ' + price : ''}</span>`;
+                    pricesList.appendChild(div);
+                }
+            }
+        });
+
+        if (isAdmin) {
+            priceEditorText.value = data.content;
+        }
+    } catch (e) {
+        console.error("Error fetching prices", e);
+    }
+}
+
+btnSavePrices.addEventListener('click', async () => {
+    const newContent = priceEditorText.value;
+    try {
+        await fetch('/api/prices', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content: newContent })
+        });
+        alert("Precios guardados correctamente");
+        fetchPrices();
+    } catch (e) {
+        console.error(e);
+        alert("Error al guardar precios");
+    }
+});
+
+// Chat Logic
+function addMessage(text, isUser = false) {
     const msgDiv = document.createElement('div');
     msgDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
-    
-    const contentDiv = document.createElement('div');
-    contentDiv.className = 'message-content';
-    contentDiv.textContent = text;
-    
-    msgDiv.appendChild(contentDiv);
+    msgDiv.innerHTML = `<div class="message-content">${text.replace(/\n/g, '<br>')}</div>`;
     chatHistory.appendChild(msgDiv);
-    
-    // Auto-scroll
     chatHistory.scrollTop = chatHistory.scrollHeight;
 }
 
-// Handle Chat Submission
-chatForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const text = messageInput.value.trim();
+sendBtn.addEventListener('click', async () => {
+    const text = chatInput.value.trim();
     if (!text) return;
-    
-    messageInput.value = '';
+
     addMessage(text, true);
-    
-    // Show typing indicator
-    const typingId = "typing-" + Date.now();
+    chatInput.value = '';
+
+    const typingId = 'typing-' + Date.now();
     const typingDiv = document.createElement('div');
     typingDiv.className = 'message ai-message';
     typingDiv.id = typingId;
-    typingDiv.innerHTML = '<div class="message-content">...</div>';
+    typingDiv.innerHTML = `<div class="message-content">Procesando...</div>`;
     chatHistory.appendChild(typingDiv);
     chatHistory.scrollTop = chatHistory.scrollHeight;
-    
+
     try {
         const response = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 message: text,
-                topic: currentTopic,
-                vendedor_id: vendedor_id,
+                topic: "Ventas",
+                vendedor_id: vendedorId,
                 session_id: sessionId,
                 persona: 'icaro'
             })
         });
         
         const data = await response.json();
-        
-        // Remove typing
         document.getElementById(typingId).remove();
+        addMessage(data.response, false);
         
-        addMessage(data.response || "No hubo respuesta.", false);
-        
-        // Refresh graph if new node created
-        if (data.shouldCreateNode) {
-            initGraph(); // Reload data
+        // Si el admin está conectado, tal vez refrescar el grafo
+        if (isAdmin && data.shouldCreateNode) {
+            init3DGraph();
         }
-        
     } catch (err) {
         document.getElementById(typingId).remove();
-        addMessage("Error de conexión con el Cerebro Icaro.", false);
-        console.error(err);
+        addMessage("Error de conexión.", false);
     }
 });
 
-// Auto-resize textarea
-messageInput.addEventListener('input', function() {
-    this.style.height = 'auto';
-    this.style.height = (this.scrollHeight) + 'px';
-    if(this.value === '') {
-        this.style.height = 'auto';
-    }
-});
-
-messageInput.addEventListener('keydown', function(e) {
+chatInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        chatForm.dispatchEvent(new Event('submit'));
+        sendBtn.click();
     }
 });
 
-// Session Management (Mock)
-newChatBtn.addEventListener('click', () => {
-    sessionId = "sesion-" + Date.now();
-    chatHistory.innerHTML = `
-        <div class="message ai-message">
-            <div class="message-content">
-                Hola, soy ICARO. Se ha iniciado una nueva sesión.
-            </div>
-        </div>`;
-    
-    const sessionDiv = document.createElement('div');
-    sessionDiv.className = 'chat-item active';
-    sessionDiv.innerHTML = `<span>Nueva Sesión</span>`;
-    
-    // Deselect others
-    document.querySelectorAll('.chat-item').forEach(el => el.classList.remove('active'));
-    
-    chatList.prepend(sessionDiv);
-});
-
-// Initialize on load
-document.addEventListener('DOMContentLoaded', () => {
-    initGraph();
-    
-    // Add default session to list
-    const sessionDiv = document.createElement('div');
-    sessionDiv.className = 'chat-item active';
-    sessionDiv.innerHTML = `<span>Sesión Actual</span>`;
-    chatList.appendChild(sessionDiv);
-});
+// 3D Graph Logic (Admin only)
+let Graph;
+async function init3DGraph() {
+    try {
+        const res = await fetch('/api/graph');
+        const gData = await res.json();
+        
+        if (!Graph) {
+            Graph = ForceGraph3D()(graphContainer)
+                .graphData(gData)
+                .nodeAutoColorBy('group')
+                .nodeLabel('label')
+                .backgroundColor('#000000');
+        } else {
+            Graph.graphData(gData);
+        }
+    } catch (e) {
+        console.error("Error loading 3D Graph", e);
+    }
+}
