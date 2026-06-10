@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listado de Precios</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #0d0d0d;
+            color: #fff;
+            font-family: 'Rajdhani', sans-serif;
+            padding: 10px;
+            font-size: 14px;
+        }
+        h1 {
+            color: #00ffcc;
+            font-family: 'Orbitron', sans-serif;
+            text-align: center;
+            border-bottom: 1px solid #00ffcc;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+        /* Top Controls */
+        .controls-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .search-bar {
+            width: 100%;
+            padding: 8px;
+            background: #111;
+            border: 1px solid #00ffcc;
+            color: #fff;
+            font-family: 'Orbitron', sans-serif;
+            border-radius: 5px;
+        }
+        .categories-container {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .category-link {
+            color: #ff00ff;
+            text-decoration: underline;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+        }
+        .category-link:hover, .category-link.active {
+            color: #00ffcc;
+        }
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        th, td {
+            border: 1px solid #333;
+            padding: 6px 8px; /* Compact padding */
+            text-align: left;
+        }
+        th {
+            background-color: #111;
+            color: #ff00ff;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+        }
+        tr:nth-child(even) { background-color: #1a1a1a; }
+        tr:hover { background-color: rgba(0, 255, 204, 0.1); }
+        .price { color: #00ffcc; font-weight: bold; }
+        
+        /* Image Thumbnail */
+        .thumbnail-container {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .thumbnail-img {
+            width: 30px;
+            height: 30px;
+            object-fit: cover;
+            border: 1px solid #555;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .thumbnail-img:hover {
+            transform: scale(2);
+            position: relative;
+            z-index: 10;
+            border-color: #00ffcc;
+        }
+        .download-btn {
+            background: transparent;
+            border: 1px solid #00ffcc;
+            color: #00ffcc;
+            cursor: pointer;
+            font-size: 10px;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        .download-btn:hover { background: #00ffcc; color: #000; }
+        
+        .loading {
+            text-align: center;
+            color: #ff00ff;
+            font-family: 'Orbitron', sans-serif;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>LISTADO DE PRECIOS GLOBAL</h1>
+
+    <div class="controls-container">
+        <input type="text" id="search-input" class="search-bar" placeholder="🔍 Buscar por nombre o código...">
+        <div class="categories-container" id="categories-container">
+            <!-- Categories will be injected here -->
+        </div>
+    </div>
+
+    <div id="loading" class="loading">Sincronizando Base de Datos...</div>
+
+    <table id="prices-table" style="display:none;">
+        <thead>
+            <tr>
+                <th>Img</th>
+                <th>Cód</th>
+                <th>Producto / Servicio</th>
+                <th>Categoría</th>
+                <th>Stock</th>
+                <th>Precio</th>
+            </tr>
+        </thead>
+        <tbody id="prices-body">
+            <!-- Dynamic content -->
+        </tbody>
+    </table>
+
+    <script>
+        let allProducts = [];
+        let currentCategory = 'Todas';
+
+        async function fetchPrices() {
+            try {
+                const res = await fetch('/api/prices');
+                const data = await res.json();
+                
+                if(data.success) {
+                    allProducts = data.products;
+                    extractCategories();
+                    renderTable();
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('prices-table').style.display = 'table';
+                } else {
+                    document.getElementById('loading').innerText = 'Error: ' + data.error;
+                }
+            } catch(e) {
+                document.getElementById('loading').innerText = 'Error de conexión Neural.';
+            }
+        }
+
+        function extractCategories() {
+            const container = document.getElementById('categories-container');
+            const categories = new Set();
+            allProducts.forEach(p => categories.add(p.category));
+            
+            let html = `<span class="category-link active" onclick="filterCategory('Todas', this)">Todas</span>`;
+            categories.forEach(cat => {
+                html += `<span class="category-link" onclick="filterCategory('${cat}', this)">${cat}</span>`;
+            });
+            container.innerHTML = html;
+        }
+
+        window.filterCategory = function(category, element) {
+            currentCategory = category;
+            document.querySelectorAll('.category-link').forEach(el => el.classList.remove('active'));
+            if(element) element.classList.add('active');
+            renderTable();
+        };
+
+        document.getElementById('search-input').addEventListener('input', renderTable);
+
+        function renderTable() {
+            const tbody = document.getElementById('prices-body');
+            const search = document.getElementById('search-input').value.toLowerCase();
+            tbody.innerHTML = '';
+
+            const filtered = allProducts.filter(p => {
+                const matchCategory = currentCategory === 'Todas' || p.category === currentCategory;
+                const matchSearch = p.name.toLowerCase().includes(search) || p.code.toLowerCase().includes(search);
+                return matchCategory && matchSearch;
+            });
+
+            filtered.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>
+                        <div class="thumbnail-container">
+                            <img src="${p.image}" class="thumbnail-img" onclick="window.open('${p.image}', '_blank')" title="Ver Foto">
+                            <a href="${p.image}" download="Producto_${p.code}" target="_blank" class="download-btn">⬇️</a>
+                        </div>
+                    </td>
+                    <td style="font-size:11px; color:#aaa;">${p.code}</td>
+                    <td style="font-weight:bold;">${p.name}</td>
+                    <td>${p.category}</td>
+                    <td>${p.stock !== null ? p.stock : '-'}</td>
+                    <td class="price">$ ${p.price.toFixed(2)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        fetchPrices();
+    </script>
+</body>
+</html>

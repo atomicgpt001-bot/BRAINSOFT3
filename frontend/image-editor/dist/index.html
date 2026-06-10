@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Imágenes - Chat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #05040a;
+            color: #fff;
+            font-family: 'Rajdhani', sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        /* Layout */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #333;
+        }
+        .config-container {
+            width: 350px;
+            background: #0a0a0f;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        
+        /* Chat History */
+        .chat-header {
+            padding: 15px;
+            background: #111;
+            border-bottom: 1px solid #00ffcc;
+            text-align: center;
+        }
+        .chat-header h1 {
+            margin: 0;
+            color: #ff00ff;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            text-shadow: 0 0 10px rgba(255,0,255,0.5);
+        }
+        .chat-history {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .msg {
+            max-width: 80%;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 15px;
+        }
+        .msg.user {
+            align-self: flex-end;
+            background: #2a0a2a;
+            border: 1px solid #ff00ff;
+        }
+        .msg.bot {
+            align-self: flex-start;
+            background: #0a1a1a;
+            border: 1px solid #00ffcc;
+        }
+        .msg img {
+            max-width: 100%;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: block;
+        }
+        .repeat-btn {
+            background: #ff00ff;
+            color: #000;
+            border: none;
+            padding: 5px 10px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        /* Input Area */
+        .input-area {
+            padding: 20px;
+            background: #0d0d15;
+            border-top: 1px solid #333;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .input-area input[type="text"] {
+            flex: 1;
+            padding: 15px;
+            background: #000;
+            border: 1px solid #555;
+            color: #fff;
+            border-radius: 5px;
+            font-size: 15px;
+        }
+        .sys-btn {
+            background: #00ffcc;
+            color: #000;
+            border: none;
+            padding: 15px 20px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .sys-btn:hover {
+            box-shadow: 0 0 15px #00ffcc;
+        }
+        
+        /* Attachment */
+        .attach-btn {
+            background: transparent;
+            border: 1px solid #ff00ff;
+            color: #ff00ff;
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .attach-btn:hover { background: rgba(255,0,255,0.2); }
+        #image-upload { display: none; }
+        .preview-img { max-height: 40px; border-radius: 4px; display: none; }
+
+        /* Config Sidebar */
+        .config-container label { color: #00ffcc; display: block; margin-top: 15px; font-size: 13px; }
+        .config-container input, .config-container textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            background: #000;
+            border: 1px solid #333;
+            color: #fff;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 12px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>SÍNTESIS VISUAL</h1>
+        </div>
+        
+        <div class="chat-history" id="chat-history">
+            <div class="msg bot">
+                Bienvenido al núcleo de síntesis visual. Describe la imagen que deseas generar. Puedes adjuntar una imagen base si deseas hacer Image-to-Image.
+            </div>
+        </div>
+
+        <div class="input-area">
+            <input type="file" id="image-upload" accept="image/*">
+            <button class="attach-btn" id="attach-btn" title="Adjuntar Imagen Base">📎</button>
+            <img id="attachment-preview" class="preview-img">
+            
+            <input type="text" id="prompt-input" placeholder="Ej: Un gato cyberpunk con gafas de neón...">
+            <button class="sys-btn" id="generate-btn">GENERAR</button>
+        </div>
+    </div>
+
+    <div class="config-container">
+        <h3 style="color:#666; margin-top:0; font-family:'Orbitron';">⚙️ CONFIGURACIÓN</h3>
+        
+        <label>ComfyUI Endpoint:</label>
+        <input type="text" id="comfy-url" value="http://127.0.0.1:8188">
+        
+        <label>JSON de Flow (Añade %%PROMPT%%):</label>
+        <textarea id="workflow-json" rows="20">{
+  "3": {
+    "inputs": {
+      "seed": 12345,
+      "steps": 20,
+      "cfg": 8,
+      "sampler_name": "euler",
+      "scheduler": "normal",
+      "denoise": 1,
+      "model": ["4", 0],
+      "positive": ["6", 0],
+      "negative": ["7", 0],
+      "latent_image": ["5", 0]
+    },
+    "class_type": "KSampler"
+  },
+  "4": {
+    "inputs": { "ckpt_name": "v1-5-pruned-emaonly.safetensors" },
+    "class_type": "CheckpointLoaderSimple"
+  },
+  "5": {
+    "inputs": { "width": 512, "height": 512, "batch_size": 1 },
+    "class_type": "EmptyLatentImage"
+  },
+  "6": {
+    "inputs": { "text": "%%PROMPT%%", "clip": ["4", 1] },
+    "class_type": "CLIPTextEncode"
+  },
+  "7": {
+    "inputs": { "text": "bad hands, text, error, missing fingers, jpeg artifacts, blurry", "clip": ["4", 1] },
+    "class_type": "CLIPTextEncode"
+  },
+  "8": {
+    "inputs": { "samples": ["3", 0], "vae": ["4", 2] },
+    "class_type": "VAEDecode"
+  },
+  "9": {
+    "inputs": { "filename_prefix": "icaro_gen", "images": ["8", 0] },
+    "class_type": "SaveImage"
+  }
+}</textarea>
+        <small style="color:#555; margin-top:5px; display:block;">Pega aquí el workflow exportado de ComfyUI. El sistema reemplazará %%PROMPT%% por tu texto.</small>
+    </div>
+
+    <script>
+        const chatHistory = document.getElementById('chat-history');
+        const generateBtn = document.getElementById('generate-btn');
+        const promptInput = document.getElementById('prompt-input');
+        const attachBtn = document.getElementById('attach-btn');
+        const imageUpload = document.getElementById('image-upload');
+        const attachmentPreview = document.getElementById('attachment-preview');
+        
+        let attachedFile = null;
+
+        attachBtn.addEventListener('click', () => imageUpload.click());
+
+        imageUpload.addEventListener('change', (e) => {
+            if(e.target.files.length > 0) {
+                attachedFile = e.target.files[0];
+                attachmentPreview.src = URL.createObjectURL(attachedFile);
+                attachmentPreview.style.display = 'block';
+            }
+        });
+
+        function appendUserMessage(text, imgFile) {
+            const div = document.createElement('div');
+            div.className = 'msg user';
+            let content = `<b>Tú:</b> ${text}`;
+            if(imgFile) {
+                content += `<br><small style="color:#ff00ff;">📎 Imagen adjunta</small>`;
+            }
+            div.innerHTML = content;
+            chatHistory.appendChild(div);
+            scrollToBottom();
+        }
+
+        function appendBotMessage(text, isError = false) {
+            const div = document.createElement('div');
+            div.className = 'msg bot';
+            div.innerHTML = `<b>Ícaro:</b> <span style="color:${isError ? '#ff3333' : '#fff'}">${text}</span>`;
+            chatHistory.appendChild(div);
+            scrollToBottom();
+            return div; // Return so we can append images to it later
+        }
+
+        function scrollToBottom() {
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        window.repeatPrompt = function(prompt) {
+            promptInput.value = prompt;
+            generateBtn.click();
+        };
+
+        generateBtn.addEventListener('click', async () => {
+            const url = document.getElementById('comfy-url').value.trim();
+            const promptText = promptInput.value.trim();
+            const rawJson = document.getElementById('workflow-json').value;
+            
+            if(!promptText) return;
+            
+            appendUserMessage(promptText, attachedFile);
+            const botMsgDiv = appendBotMessage("Iniciando síntesis en la red neuronal... (Nodo Flow)");
+            
+            promptInput.value = '';
+            
+            // Upload image to ComfyUI first if attached
+            let uploadedFilename = null;
+            if(attachedFile) {
+                botMsgDiv.querySelector('span').innerText = "Subiendo imagen base al nodo...";
+                const formData = new FormData();
+                formData.append("image", attachedFile);
+                formData.append("overwrite", "true");
+                
+                try {
+                    const uploadRes = await fetch(`${url}/upload/image`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const uploadData = await uploadRes.json();
+                    uploadedFilename = uploadData.name;
+                    botMsgDiv.querySelector('span').innerText = `Imagen base subida (${uploadedFilename}). Iniciando generación...`;
+                } catch(e) {
+                    botMsgDiv.querySelector('span').innerText = "Error subiendo la imagen base. ¿Soporta tu ComfyUI /upload/image?";
+                    botMsgDiv.querySelector('span').style.color = '#ff3333';
+                    return;
+                }
+                
+                // Clear attachment
+                attachedFile = null;
+                attachmentPreview.style.display = 'none';
+                imageUpload.value = '';
+            }
+            
+            try {
+                let injectedJson = rawJson.replace(/%%PROMPT%%/g, promptText);
+                let finalWorkflow = JSON.parse(injectedJson);
+                
+                // Set random seed
+                for (let nodeId in finalWorkflow) {
+                    if (finalWorkflow[nodeId].inputs && finalWorkflow[nodeId].inputs.seed !== undefined) {
+                        finalWorkflow[nodeId].inputs.seed = Math.floor(Math.random() * 100000000);
+                    }
+                    // If we have an uploaded image, try to inject it into any LoadImage node
+                    if (uploadedFilename && finalWorkflow[nodeId].class_type === "LoadImage") {
+                        finalWorkflow[nodeId].inputs.image = uploadedFilename;
+                    }
+                }
+                
+                const res = await fetch(`${url}/prompt`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: finalWorkflow })
+                });
+                
+                const data = await res.json();
+                if(data.prompt_id) {
+                    botMsgDiv.querySelector('span').innerText = "Procesando en la matriz gráfica...";
+                    
+                    let checkInterval = setInterval(async () => {
+                        try {
+                            const histRes = await fetch(`${url}/history/${data.prompt_id}`);
+                            const histData = await histRes.json();
+                            if(histData[data.prompt_id]) {
+                                clearInterval(checkInterval);
+                                botMsgDiv.querySelector('span').innerText = "Síntesis Completada.";
+                                
+                                const outputs = histData[data.prompt_id].outputs;
+                                for (let key in outputs) {
+                                    if(outputs[key].images && outputs[key].images.length > 0) {
+                                        const imgName = outputs[key].images[0].filename;
+                                        const imgSrc = `${url}/view?filename=${imgName}&type=output`;
+                                        
+                                        const imgEl = document.createElement('img');
+                                        imgEl.src = imgSrc;
+                                        botMsgDiv.appendChild(imgEl);
+                                        
+                                        const btnEl = document.createElement('button');
+                                        btnEl.className = 'repeat-btn';
+                                        btnEl.innerText = '🔄 Repetir Prompt';
+                                        btnEl.onclick = () => window.repeatPrompt(promptText);
+                                        botMsgDiv.appendChild(btnEl);
+                                        
+                                        scrollToBottom();
+                                        break;
+                                    }
+                                }
+                            }
+                        } catch(e) {}
+                    }, 2000);
+                    
+                } else {
+                    botMsgDiv.querySelector('span').innerText = "Error del Nodo: " + (data.error || "Desconocido");
+                    botMsgDiv.querySelector('span').style.color = '#ff3333';
+                }
+            } catch(e) {
+                botMsgDiv.querySelector('span').innerText = "Fallo de conexión. Revisa que ComfyUI esté ejecutándose con --cors-header=*";
+                botMsgDiv.querySelector('span').style.color = '#ff3333';
+            }
+        });
+        
+        promptInput.addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') generateBtn.click();
+        });
+    </script>
+</body>
+</html>

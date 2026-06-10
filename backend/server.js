@@ -14,6 +14,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // Sirve el frontend para que los asesores entren desde la web (Celular/PC)
 app.use(express.static(path.join(__dirname, '../frontend')));
+app.use('/editor', express.static(path.join(__dirname, '../frontend/image-editor/dist')));
+app.use('/prices', express.static(path.join(__dirname, '../frontend/prices')));
 
 // Forzar la ruta explícita por si express.static falla
 app.get('/soft3.html', (req, res) => {
@@ -167,23 +169,40 @@ app.listen(PORT, () => {
 });
 
 // --- PRICE LIST ENDPOINTS ---
-app.get('/api/prices', (req, res) => {
+app.get('/api/prices', async (req, res) => {
     try {
-        const content = obsidian.readPriceList();
-        res.json({ content });
-    } catch (e) {
-        console.error(e);
-        res.status(500).json({ error: 'Error reading prices' });
-    }
-});
-
-app.post('/api/prices', (req, res) => {
-    try {
-        const { content } = req.body;
-        obsidian.writePriceList(content);
-        res.json({ success: true });
-    } catch (e) {
-        console.error(e);
-        res.status(500).json({ error: 'Error writing prices' });
+        const result = await sql`
+          SELECT p.*, c.name as category_name 
+          FROM "Product" p 
+          LEFT JOIN "Category" c ON p."categoryId" = c.id 
+          WHERE p."isActive" = true
+        `;
+        
+        const formattedProducts = result.map(p => {
+          let imgUrl = 'https://via.placeholder.com/400';
+          if (p.images) {
+            try {
+                const arr = JSON.parse(p.images);
+                if (arr && arr.length > 0) imgUrl = arr[0];
+            } catch(e) {
+                imgUrl = p.images.split(',')[0].replace(/\[|\]|"/g, '');
+            }
+          }
+          return {
+            id: p.id,
+            name: p.name,
+            code: p.sku || 'N/A',
+            price: Number(p.price) || 0,
+            image: imgUrl,
+            category: p.category_name || 'Sin Categoría',
+            description: p.description,
+            stock: p.stock
+          };
+        });
+        
+        res.json({ success: true, count: formattedProducts.length, products: formattedProducts });
+    } catch (error) {
+        console.error('Supabase error:', error);
+        res.status(500).json({ success: false, error: 'Database error' });
     }
 });
