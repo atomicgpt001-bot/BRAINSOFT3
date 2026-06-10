@@ -15,6 +15,11 @@ app.use(express.urlencoded({ extended: true }));
 // Sirve el frontend para que los asesores entren desde la web (Celular/PC)
 app.use(express.static(path.join(__dirname, '../frontend')));
 
+// Forzar la ruta explícita por si express.static falla
+app.get('/soft3.html', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/soft3.html'));
+});
+
 const PORT = process.env.PORT || 3050;
 
 const obsidian = new ObsidianManager(process.env.OBSIDIAN_VAULT_PATH);
