@@ -3,68 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cerebro Icaro - Modo Cyberpunk</title>
-    <link rel="stylesheet" href="icaro.css">
-    <!-- Solo para admin -->
-    <script src="//unpkg.com/3d-force-graph"></script>
+    <title>ICARO - Cerebro Corporativo</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+    <!-- 3D Force Graph Library -->
+    <script src="https://unpkg.com/3d-force-graph"></script>
 </head>
 <body>
-
-    <!-- Login Modal -->
-    <div id="login-overlay">
-        <div class="login-box">
-            <h2>Acceso a Sistema</h2>
-            <input type="text" id="username" placeholder="Usuario" autocomplete="off">
-            <input type="password" id="password" placeholder="PIN / Contraseña" autocomplete="off">
-            <button id="btn-login-admin">Entrar como Admin</button>
-            <button id="btn-login-sales" class="secondary">Entrar como Vendedor</button>
-        </div>
+    <!-- IDENTITY OVERLAY -->
+    <div id="identity-modal" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #00ffcc; font-family: 'Orbitron', sans-serif;">
+        <h1 style="text-shadow: 0 0 10px #00ffcc; margin-bottom: 30px;">[ ACCESO REQUERIDO ]</h1>
+        <p style="font-family: 'Rajdhani', sans-serif; font-size: 1.2rem; margin-bottom: 20px;">Por favor, identifícate para iniciar sincronización neuronal.</p>
+        
+        <input type="text" id="identity-username" placeholder="Usuario (ej. admin o tu nombre)" style="padding: 10px 20px; font-size: 1.2rem; background: transparent; border: 1px solid #00ffcc; color: #fff; text-align: center; width: 350px; margin-bottom: 10px; font-family: 'Rajdhani', sans-serif;" />
+        <input type="password" id="identity-password" placeholder="PIN (Solo Administrador)" style="padding: 10px 20px; font-size: 1.2rem; background: transparent; border: 1px solid #00ffcc; color: #fff; text-align: center; width: 350px; margin-bottom: 20px; font-family: 'Rajdhani', sans-serif;" />
+        
+        <button id="identity-submit" class="neon-btn" style="padding: 10px 30px; font-size: 1.2rem; margin-bottom: 10px;">Sincronizar como Admin</button>
+        <button id="identity-sales" class="sys-btn" style="padding: 10px 30px; font-size: 1rem; color: #aaa; border-color: #555;">Entrar como Vendedor</button>
     </div>
 
-    <!-- Main App -->
-    <div id="main-container">
-        
-        <!-- Sidebar: Price List -->
-        <div id="sidebar">
-            <div class="sidebar-header">
-                <h2>Lista de Precios</h2>
-            </div>
-            <div id="prices-list">
-                <!-- Precios cargados por JS -->
-            </div>
-            
-            <!-- Editor solo para admin -->
-            <div id="editor-panel">
-                <textarea id="price-editor-text" placeholder="Formato: Producto - Precio"></textarea>
-                <button id="btn-save-prices" style="width: 100%; margin-top: 5px;">Guardar Precios</button>
-            </div>
+    <div class="app-container" id="main-container" style="display: none;">
+        <!-- TOP DRAG BAR FOR ELECTRON -->
+        <div class="titlebar">
+            <span>OBSIDIAN // ICARO CORTEX</span>
         </div>
 
-        <!-- Center: 3D Graph (Admin only) -->
-        <div id="center-panel">
-            <div id="graph-container"></div>
-        </div>
+        <div class="main-layout">
+            <!-- LEFT PANEL: MODULOS -->
+            <div class="sidebar">
+                <div class="panel-section">
+                    <button id="btn-cerebro" class="neon-btn" style="width: 100%; border-color: #fff; color: #fff; text-shadow: 0 0 5px #fff; margin-bottom: 15px;">
+                        [ CEREBRO VIRTUAL ]
+                    </button>
+                </div>
+                <div class="panel-section">
+                    <h2>HERRAMIENTAS</h2>
+                    <ul class="topic-list">
+                        <li data-action="precios" data-color="#00ffcc" class="active" id="btn-precios">Lista de Precios</li>
+                        <li data-action="imagenes" data-color="#ff00ff" id="btn-imagenes">Generador de Imágenes</li>
+                    </ul>
+                </div>
+                
+                <!-- Panel de Precios (Oculto por defecto) -->
+                <div id="price-panel" class="panel-section" style="display:none; flex: 1; overflow-y: auto;">
+                    <h2 style="color: #ffaa00;">PRECIOS ACTUALES</h2>
+                    <div id="prices-list" style="font-size: 0.9rem; margin-bottom: 10px; white-space: pre-wrap; font-family: 'Rajdhani', sans-serif;"></div>
+                    <textarea id="price-editor-text" style="width: 100%; height: 100px; background: rgba(0,0,0,0.5); color: #fff; border: 1px solid #ffaa00; display: none;"></textarea>
+                    <button id="btn-save-prices" class="sys-btn" style="width: 100%; margin-top: 5px; color: #ffaa00; border-color: #ffaa00; display: none;">Guardar Cambios</button>
+                </div>
 
-        <!-- Right Panel: Chat -->
-        <div id="chat-panel">
-            <div class="panel-header">
-                <h3 id="chat-title">Terminal Icaro</h3>
-            </div>
-            <div id="chat-history">
-                <div class="message ai-message">
-                    <div class="message-content">
-                        Conexión establecida. Soy ICARO, Inteligencia de Ventas de Atomic.
-                    </div>
+                <div class="voice-controls">
+                    <button id="mic-btn" class="neon-btn">
+                        <span class="icon">🎙</span> LINK VOICE
+                    </button>
+                    <div id="voice-status">Microphone Off</div>
                 </div>
             </div>
-            <div id="chat-input-container">
-                <textarea id="chat-input" placeholder="Escribe un comando o consulta..." rows="1"></textarea>
-                <button id="send-btn">Enviar</button>
+
+            <!-- CENTER PANEL: NEURAL GRAPH (ONLY ADMIN) -->
+            <div class="center-panel" id="center-panel" style="display: none;">
+                <div class="graph-container" id="graph-container">
+                    <!-- WebGL Graph will render here -->
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL: CHAT INTERFACE -->
+            <div class="chat-panel">
+                <div class="chat-header">
+                    <h2>TERMINAL ICARO</h2>
+                    <span id="current-user-badge" style="color: #00ffcc; text-shadow: 0 0 5px #00ffcc;">[ Sesión Iniciada ]</span>
+                </div>
+                <div class="chat-history" id="chat-history">
+                    <!-- Messages go here -->
+                </div>
+                <div class="chat-input-container">
+                    <input type="file" id="file-upload" style="display: none;" multiple accept="image/*,application/pdf" />
+                    <button id="attach-btn" class="sys-btn" style="min-width: 40px; padding: 0;">📎</button>
+                    <input type="text" id="chat-input" placeholder="Escribe un comando o consulta a ICARO..." />
+                    <button id="send-btn" class="sys-btn">TRANSMIT</button>
+                </div>
+                <div id="attachment-preview" style="font-size: 10px; color: #00ffcc; margin-top: 5px;"></div>
             </div>
         </div>
-
     </div>
-
+    
     <script src="app.js"></script>
 </body>
 </html>

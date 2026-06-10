@@ -1,82 +1,109 @@
 let isAdmin = false;
-let vendedorId = "Vendedor";
-let sessionId = Date.now().toString();
+let vendedorId = "Vendedor_Anonimo";
+let sessionId = "sesion_" + Date.now();
+let knownBotName = "ICARO";
 
-// Elements
-const loginOverlay = document.getElementById('login-overlay');
+// DOM Elements
+const loginOverlay = document.getElementById('identity-modal');
 const mainContainer = document.getElementById('main-container');
-const btnLoginAdmin = document.getElementById('btn-login-admin');
-const btnLoginSales = document.getElementById('btn-login-sales');
-const usernameInput = document.getElementById('username');
-const passwordInput = document.getElementById('password');
+const btnLoginAdmin = document.getElementById('identity-submit');
+const btnLoginSales = document.getElementById('identity-sales');
+const usernameInput = document.getElementById('identity-username');
+const passwordInput = document.getElementById('identity-password');
+const currentUserBadge = document.getElementById('current-user-badge');
 
 const chatInput = document.getElementById('chat-input');
 const sendBtn = document.getElementById('send-btn');
 const chatHistory = document.getElementById('chat-history');
+
+// Panel Elements
+const centerPanel = document.getElementById('center-panel');
+const pricePanel = document.getElementById('price-panel');
 const pricesList = document.getElementById('prices-list');
-const editorPanel = document.getElementById('editor-panel');
 const priceEditorText = document.getElementById('price-editor-text');
 const btnSavePrices = document.getElementById('btn-save-prices');
-const graphContainer = document.getElementById('graph-container');
 
-// Login Logic
+// Buttons
+const btnCerebro = document.getElementById('btn-cerebro');
+const btnPrecios = document.getElementById('btn-precios');
+const btnImagenes = document.getElementById('btn-imagenes');
+
+// --- LOGIN LOGIC ---
 btnLoginAdmin.addEventListener('click', () => {
-    const user = usernameInput.value.trim().toLowerCase();
+    const user = usernameInput.value.trim();
     const pass = passwordInput.value.trim();
-    if (user === 'admin' && pass === '1234') {
+    if (user.toLowerCase() === 'admin' && pass === '1234') {
         isAdmin = true;
-        vendedorId = "Admin";
+        vendedorId = "Administrador";
         enterApp();
     } else {
-        alert("Credenciales incorrectas");
+        alert("Credenciales incorrectas para Admin.");
     }
 });
 
 btnLoginSales.addEventListener('click', () => {
-    const user = usernameInput.value.trim() || "Vendedor";
+    const user = usernameInput.value.trim();
+    if (!user || user.toLowerCase() === 'admin') {
+        vendedorId = "Vendedor Nuevo";
+    } else {
+        vendedorId = user;
+    }
     isAdmin = false;
-    vendedorId = user;
     enterApp();
 });
 
 function enterApp() {
     loginOverlay.style.display = 'none';
     mainContainer.style.display = 'flex';
+    currentUserBadge.textContent = `[ ${vendedorId} ]`;
     
-    fetchPrices();
+    // First message logic
+    chatHistory.innerHTML = '';
+    if (vendedorId === "Vendedor Nuevo") {
+        addMessage(`Hola, ¿con qué te puedo ayudar hoy? Veo que eres nuevo... ¿Cómo te llamas y cómo te gustaría llamarme a mí?`, false);
+    } else {
+        addMessage(`Hola ${vendedorId}, ¿con qué te puedo ayudar hoy?`, false);
+    }
 
     if (isAdmin) {
-        editorPanel.style.display = 'block';
-        graphContainer.style.display = 'block';
+        centerPanel.style.display = 'flex';
+        priceEditorText.style.display = 'block';
+        btnSavePrices.style.display = 'block';
         init3DGraph();
     } else {
-        editorPanel.style.display = 'none';
-        graphContainer.style.display = 'none';
+        centerPanel.style.display = 'none';
+        priceEditorText.style.display = 'none';
+        btnSavePrices.style.display = 'none';
     }
+    
+    fetchPrices();
 }
 
-// Price List Logic
+// --- BUTTON LOGIC ---
+btnCerebro.addEventListener('click', () => {
+    if (isAdmin) {
+        centerPanel.style.display = 'flex';
+        pricePanel.style.display = 'none';
+    } else {
+        alert("El Cerebro Virtual 3D es exclusivo para Administradores.");
+    }
+});
+
+btnPrecios.addEventListener('click', () => {
+    centerPanel.style.display = 'none';
+    pricePanel.style.display = 'flex';
+});
+
+btnImagenes.addEventListener('click', () => {
+    addMessage("La función de Generador de Imágenes requiere vinculación con DALL-E/Midjourney. Envíame un prompt y lo simularé por ahora.", false);
+});
+
+// --- PRICE LIST LOGIC ---
 async function fetchPrices() {
     try {
         const res = await fetch('/api/prices');
         const data = await res.json();
-        const lines = data.content.split('\n');
-        
-        pricesList.innerHTML = '';
-        lines.forEach(line => {
-            if (line.trim() !== '') {
-                const parts = line.split('-');
-                const name = parts[0] ? parts[0].trim() : '';
-                const price = parts[1] ? parts[1].trim() : '';
-                if (name) {
-                    const div = document.createElement('div');
-                    div.className = 'price-item';
-                    div.innerHTML = `<span>${name}</span><span>${price ? '- ' + price : ''}</span>`;
-                    pricesList.appendChild(div);
-                }
-            }
-        });
-
+        pricesList.textContent = data.content;
         if (isAdmin) {
             priceEditorText.value = data.content;
         }
@@ -101,11 +128,18 @@ btnSavePrices.addEventListener('click', async () => {
     }
 });
 
-// Chat Logic
+// --- CHAT LOGIC ---
 function addMessage(text, isUser = false) {
     const msgDiv = document.createElement('div');
-    msgDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
-    msgDiv.innerHTML = `<div class="message-content">${text.replace(/\n/g, '<br>')}</div>`;
+    msgDiv.className = `msg ${isUser ? 'user' : 'system'}`;
+    
+    // Si es del sistema (bot), agregar el prefijo del nombre si aplica
+    let finalText = text.replace(/\n/g, '<br>');
+    if (!isUser) {
+        finalText = `<strong style="color: #00ffcc;">[${knownBotName}]</strong> ` + finalText;
+    }
+    
+    msgDiv.innerHTML = finalText;
     chatHistory.appendChild(msgDiv);
     chatHistory.scrollTop = chatHistory.scrollHeight;
 }
@@ -117,20 +151,28 @@ sendBtn.addEventListener('click', async () => {
     addMessage(text, true);
     chatInput.value = '';
 
+    // Lógica para detectar si el usuario dice cómo llamarse o cómo llamar al bot
+    if (vendedorId === "Vendedor Nuevo" && text.toLowerCase().includes("llamo") && text.toLowerCase().includes("llámate")) {
+        vendedorId = "Vendedor Registrado"; // Evitamos que lo vuelva a preguntar
+    }
+
     const typingId = 'typing-' + Date.now();
     const typingDiv = document.createElement('div');
-    typingDiv.className = 'message ai-message';
+    typingDiv.className = 'msg system';
     typingDiv.id = typingId;
-    typingDiv.innerHTML = `<div class="message-content">Procesando...</div>`;
+    typingDiv.innerHTML = `[Procesando...]`;
     chatHistory.appendChild(typingDiv);
     chatHistory.scrollTop = chatHistory.scrollHeight;
 
     try {
+        // Le pasamos el system prompt especial para que sepa su rol y el nombre del usuario
+        let extraContext = `El usuario con el que hablas es "${vendedorId}". Si el usuario te pidió que te llames de alguna forma, asume esa personalidad y responde acordemente.`;
+
         const response = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                message: text,
+                message: text + "\n[System Context: " + extraContext + "]",
                 topic: "Ventas",
                 vendedor_id: vendedorId,
                 session_id: sessionId,
@@ -140,9 +182,15 @@ sendBtn.addEventListener('click', async () => {
         
         const data = await response.json();
         document.getElementById(typingId).remove();
+        
+        // Tratar de extraer si el bot asumió un nuevo nombre
+        const matchName = data.response.match(/Me llamaré (.*?) /i);
+        if (matchName) {
+            knownBotName = matchName[1].trim();
+        }
+
         addMessage(data.response, false);
         
-        // Si el admin está conectado, tal vez refrescar el grafo
         if (isAdmin && data.shouldCreateNode) {
             init3DGraph();
         }
@@ -159,7 +207,7 @@ chatInput.addEventListener('keypress', (e) => {
     }
 });
 
-// 3D Graph Logic (Admin only)
+// --- 3D GRAPH (Admin Only) ---
 let Graph;
 async function init3DGraph() {
     try {
@@ -171,7 +219,9 @@ async function init3DGraph() {
                 .graphData(gData)
                 .nodeAutoColorBy('group')
                 .nodeLabel('label')
-                .backgroundColor('#000000');
+                .backgroundColor('#000000')
+                .linkColor(() => '#00ffcc')
+                .nodeRelSize(5);
         } else {
             Graph.graphData(gData);
         }
