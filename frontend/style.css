@@ -125,9 +125,14 @@ body {
 /* Chat Panel */
 #chat-panel {
     width: 450px;
+    min-width: 450px;
+    flex-shrink: 0;
     display: flex;
     flex-direction: column;
     background-color: var(--bg-panel);
+    border-left: 1px solid var(--border-color);
+    box-shadow: -2px 0 10px rgba(0,0,0,0.05);
+    z-index: 5;
 }
 
 .panel-header {
