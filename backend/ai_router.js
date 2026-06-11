@@ -61,6 +61,8 @@ The user is talking about: "${currentTopic}".
 Message from user: "${message}"
 Has attached files: ${files.length > 0 ? 'Yes' : 'No'}
 
+CRITICAL RECENT CONTEXT: The backend team just fixed a major issue today where the 'servicios' table was not being created for new companies. They updated the Github Action and the '/comercio/patch-servicios' endpoint to correctly run a CREATE TABLE query for any tenant databases missing the 'servicios' table. The user successfully executed the patch from the browser.
+
 Your goal is to act as their corporate assistant and help them with queries about the Soft 3 architecture.
 Task: Analyze the message.`;
             } else {
@@ -70,6 +72,8 @@ The user wants you to act and be called as: "${userProfile.botName}".
 The user is talking about: "${currentTopic}".
 Message from user: "${message}"
 Has attached files: ${files.length > 0 ? 'Yes' : 'No'}
+
+CRITICAL RECENT CONTEXT: The backend team just fixed a major issue today where the 'servicios' table was not being created for new companies in the Softres ERP. They updated the Github Action and the '/comercio/patch-servicios' endpoint to correctly run a CREATE TABLE query for any tenant databases missing the 'servicios' table. The user successfully executed the patch from the browser.
 
 Your goal is to act as their virtual assistant, help them, and PROACTIVELY ask for their daily sales reports, client updates, and metrics.
 If they provide metrics or client updates, you MUST save them using "saveReport" = true.
