@@ -78,7 +78,8 @@ async function loadDynamicUI() {
         dynamicNeuronasContainer.innerHTML = ''; // Clear existing
         let colorIdx = 0;
         
-        vaultStructure.forEach(neuronaObj => {
+        if (vaultStructure.vault) {
+            vaultStructure.vault.forEach(neuronaObj => {
             const color = NEURONA_COLORS[colorIdx % NEURONA_COLORS.length];
             colorIdx++;
             
@@ -107,7 +108,7 @@ async function loadDynamicUI() {
             section.appendChild(ul);
             dynamicNeuronasContainer.appendChild(section);
         });
-        
+        }
         // Auto-select the first one if available
         const firstLi = dynamicNeuronasContainer.querySelector('li');
         if (firstLi) {
