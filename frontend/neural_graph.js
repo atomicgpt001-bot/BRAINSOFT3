@@ -161,22 +161,17 @@ window.renderGlobalGraph = function(vaultStructure) {
         const neuronaColor = colors[colorIndex % colors.length];
         colorIndex++;
         
-        graphData.nodes.push({ id: neuronaObj.neurona, group: 1, color: neuronaColor });
-        graphData.links.push({ source: "YO", target: neuronaObj.neurona, color: neuronaColor });
+        const topicName = neuronaObj.topic || "Unknown";
+        graphData.nodes.push({ id: topicName, group: 1, color: neuronaColor });
+        graphData.links.push({ source: "YO", target: topicName, color: neuronaColor });
 
-        neuronaObj.ramas.forEach(ramaObj => {
-            const ramaId = `${neuronaObj.neurona}_${ramaObj.rama}`;
-            graphData.nodes.push({ id: ramaId, group: 2, color: neuronaColor });
-            graphData.links.push({ source: neuronaObj.neurona, target: ramaId, color: neuronaColor });
-
-            if (ramaObj.files && ramaObj.files.length > 0) {
-                ramaObj.files.forEach(fileName => {
-                    const fileNodeId = `${ramaId}_${fileName}`;
-                    graphData.nodes.push({ id: fileNodeId, group: 3, color: neuronaColor });
-                    graphData.links.push({ source: ramaId, target: fileNodeId, color: neuronaColor });
-                });
-            }
-        });
+        if (neuronaObj.files && neuronaObj.files.length > 0) {
+            neuronaObj.files.forEach(fileName => {
+                const fileNodeId = `${topicName}_${fileName}`;
+                graphData.nodes.push({ id: fileNodeId, group: 3, color: neuronaColor });
+                graphData.links.push({ source: topicName, target: fileNodeId, color: neuronaColor });
+            });
+        }
     });
     
     updateGraph();
