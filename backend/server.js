@@ -244,6 +244,16 @@ app.post('/api/node/summary', async (req, res) => {
     res.json({ summary });
 });
 
+app.get('/api/node/content', (req, res) => {
+    const { topic, fileName } = req.query;
+    const content = obsidian.readNodeContent(topic, fileName);
+    if (content) {
+        res.json({ content });
+    } else {
+        res.status(404).json({ error: "Node not found" });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`[NEURAL CORE] Backend running on port ${PORT}`);
 });
