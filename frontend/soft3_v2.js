@@ -151,9 +151,14 @@ chatForm.addEventListener('submit', async (e) => {
 
     try {
         const context = `El usuario es "${vendedor_id}". Tu nombre es "${knownBotName}". Módulo activo: "${currentTopic}".`;
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 25000); // 25s timeout
+
         const response = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            signal: controller.signal,
             body: JSON.stringify({
                 message: text + '\n[Context: ' + context + ']',
                 topic: currentTopic,
@@ -162,6 +167,7 @@ chatForm.addEventListener('submit', async (e) => {
                 persona: 'soft3'
             })
         });
+        clearTimeout(timeoutId);
 
         const data = await response.json();
         document.getElementById(typingId)?.remove();
@@ -183,7 +189,11 @@ chatForm.addEventListener('submit', async (e) => {
         }
     } catch (err) {
         document.getElementById(typingId)?.remove();
-        addMessage('❌ Error de conexión con el Cerebro Soft 3. Verifica que el servidor esté corriendo.', false);
+        if (err.name === 'AbortError') {
+            addMessage('⏱️ El servidor tardó demasiado en responder. Verifica que esté corriendo con la API KEY configurada y vuelve a intentarlo.', false);
+        } else {
+            addMessage('❌ Error de conexión con el Cerebro Soft 3. Verifica que el servidor esté corriendo.', false);
+        }
         console.error('[Chat]', err);
     }
 });
