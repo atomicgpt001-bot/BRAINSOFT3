@@ -12,10 +12,6 @@ const chatList = document.getElementById('chat-list');
 const newChatBtn = document.getElementById('new-chat-btn');
 const currentUserSpan = document.getElementById('current-user');
 const editProfileBtn = document.getElementById('edit-profile-btn');
-const profileModal = document.getElementById('profile-modal');
-const profileForm = document.getElementById('profile-form');
-const userNameInput = document.getElementById('user-name');
-const botNameInput = document.getElementById('bot-name');
 
 // Initialize 3D Graph
 let Graph;
@@ -100,35 +96,19 @@ function startChat() {
 
 // Profile Logic
 function loadProfile() {
-    if (!localStorage.getItem('soft3_username')) {
-        profileModal.style.display = 'flex';
-    } else {
-        profileModal.style.display = 'none';
-        vendedor_id = localStorage.getItem('soft3_username');
-        knownBotName = localStorage.getItem('soft3_botname') || "Soft 3";
-        startChat();
-    }
+    vendedor_id = localStorage.getItem('soft3_username') || "ATOMIC";
+    knownBotName = localStorage.getItem('soft3_botname') || "Soft 3";
+    startChat();
 }
 
-profileForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const newUsername = userNameInput.value.trim();
-    const newBotname = botNameInput.value.trim();
-    
-    if (newUsername && newBotname) {
-        localStorage.setItem('soft3_username', newUsername);
-        localStorage.setItem('soft3_botname', newBotname);
-        vendedor_id = newUsername;
-        knownBotName = newBotname;
-        profileModal.style.display = 'none';
+// Edit Profile (Simplified for now)
+editProfileBtn.addEventListener('click', () => {
+    const newName = prompt("¿Cuál es tu nombre?", vendedor_id);
+    if (newName) {
+        localStorage.setItem('soft3_username', newName);
+        vendedor_id = newName;
         startChat();
     }
-});
-
-editProfileBtn.addEventListener('click', () => {
-    userNameInput.value = vendedor_id === "Cliente_Soft3" ? "" : vendedor_id;
-    botNameInput.value = knownBotName;
-    profileModal.style.display = 'flex';
 });
 
 // Handle Chat Submission
@@ -215,5 +195,5 @@ newChatBtn.addEventListener('click', () => {
 });
 
 // Run on start
-// initGraph();
+initGraph();
 loadProfile();
