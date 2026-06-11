@@ -75,6 +75,7 @@
             display: flex;
             flex: 1;
             overflow: hidden;
+            height: 0; /* force flex child to respect container */
         }
 
         /* GRAPH PANEL */
@@ -84,7 +85,9 @@
             flex-direction: column;
             border-right: 1px solid var(--border);
             background: var(--bg);
+            overflow: hidden;
             min-width: 0;
+            position: relative;
         }
         .panel-header {
             padding: 10px 16px;
@@ -101,6 +104,8 @@
         #graph-container {
             flex: 1;
             width: 100%;
+            overflow: hidden;
+            position: relative;
         }
 
         /* Legend */

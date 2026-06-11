@@ -36,8 +36,13 @@ function initGraph() {
     fetch('/api/graph')
         .then(r => r.json())
         .then(gData => {
+            const w = elem.clientWidth  || 600;
+            const h = elem.clientHeight || 400;
+
             if (!Graph) {
                 Graph = ForceGraph3D()(elem)
+                    .width(w)
+                    .height(h)
                     .backgroundColor('#0d1117')
                     .graphData(gData)
                     .nodeLabel('label')
@@ -58,20 +63,21 @@ function initGraph() {
                             node,
                             800
                         );
-
-                        addMessage(`📍 Contexto cambiado a: <strong>${node.label}</strong>. ¿En qué te puedo ayudar con este módulo?`, false);
+                        addMessage(`📍 Contexto cambiado a: <strong>${node.label}</strong>. ¿En qué te puedo ayudar?`, false);
                     });
 
-                window.addEventListener('resize', () => {
-                    if (Graph) {
+                // Keep graph sized to its container on resize
+                const ro = new ResizeObserver(() => {
+                    if (Graph && elem.clientWidth > 0) {
                         Graph.width(elem.clientWidth).height(elem.clientHeight);
                     }
                 });
+                ro.observe(elem);
             } else {
                 Graph.graphData(gData);
             }
         })
-        .catch(err => console.error('[Graph] Error loading graph data:', err));
+        .catch(err => console.error('[Graph] Error:', err));
 }
 
 // ─── CHAT UTILS ──────────────────────────────────────────────────────────────
