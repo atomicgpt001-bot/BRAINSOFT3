@@ -170,10 +170,12 @@ chatForm.addEventListener('submit', async (e) => {
         document.getElementById(typingId).remove();
         
         // Extract new bot name if generated (Fallback in case user asks bot to change its name in chat)
-        const matchName = data.response.match(/Me llamaré (.*?) /i);
-        if (matchName) {
-            knownBotName = matchName[1].trim();
-            localStorage.setItem('soft3_botname', knownBotName);
+        if (data.response) {
+            const matchName = data.response.match(/Me llamaré (.*?) /i);
+            if (matchName) {
+                knownBotName = matchName[1].trim();
+                localStorage.setItem('soft3_botname', knownBotName);
+            }
         }
         
         addMessage(data.response || "No hubo respuesta.", false);
