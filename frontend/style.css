@@ -373,7 +373,6 @@ body {
 @media (max-width: 900px) {
     #app-container {
         flex-direction: column;
-        overflow-y: auto;
     }
     #sidebar {
         width: 100%;
@@ -382,28 +381,27 @@ body {
         border-bottom: 1px solid var(--border-color);
         flex-shrink: 0;
     }
+    .sidebar-header {
+        padding: 10px;
+    }
     #chat-list {
-        max-height: 150px;
-        overflow-y: auto;
+        max-height: 0; /* Hide chat list by default to save space */
+        overflow: hidden;
+        display: none;
     }
     #main-content {
         flex-direction: column;
-        flex: none;
-        height: auto;
+        flex: 1;
+        height: 100%;
     }
     #graph-panel {
-        height: 40vh;
-        min-height: 300px;
-        border-right: none;
-        border-bottom: 1px solid var(--border-color);
-        flex: none;
+        display: none; /* Hide 3D graph on narrow screens, it pushes chat out of view! */
     }
     #chat-panel {
         width: 100%;
         min-width: 100%;
-        height: 60vh;
-        min-height: 500px;
+        height: 100%;
+        flex: 1;
         border-left: none;
-        flex: none;
     }
 }
