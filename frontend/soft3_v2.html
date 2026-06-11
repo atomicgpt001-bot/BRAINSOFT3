@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cerebro Soft 3</title>
+    <link rel="stylesheet" href="style_v2.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- Force Graph Library -->
+    <script src="https://unpkg.com/3d-force-graph"></script>
+</head>
+<body>
+    <div id="app-container">
+        <!-- Sidebar: Chat History -->
+        <div id="sidebar">
+            <div class="sidebar-header">
+                <h2>Cerebro Soft 3</h2>
+                <button id="new-chat-btn">+ Nuevo Chat</button>
+            </div>
+            <div id="chat-list">
+                <!-- Chat sessions will be injected here -->
+            </div>
+            <div class="sidebar-footer">
+                <div class="user-info" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <span id="current-user">Usuario: Admin</span>
+                    <button id="edit-profile-btn" style="background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 0.8rem;" title="Editar Perfil">✏️</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content: Split Screen -->
+        <div id="main-content">
+            <!-- Left Panel: 2D Brain Graph -->
+            <div id="graph-panel">
+                <div class="panel-header">
+                    <h3>Mapa Neuronal Soft 3</h3>
+                    <span id="current-node-indicator">Rama: General</span>
+                </div>
+                <div id="graph-container"></div>
+            </div>
+
+            <!-- Right Panel: Chat Interface -->
+            <div id="chat-panel">
+                <div class="panel-header">
+                    <h3 id="chat-title">Sesión Actual</h3>
+                </div>
+                
+                <div id="chat-history">
+                    <div class="message ai-message">
+                        <div class="message-content">
+                            Hola, soy el bot de Soft 3. Haz clic en una rama del mapa neuronal a la izquierda para enfocarme en un tema, o pregúntame lo que necesites.
+                        </div>
+                    </div>
+                </div>
+
+                <div id="chat-input-area">
+                    <form id="chat-form">
+                        <textarea id="message-input" placeholder="Escribe un mensaje..." rows="1"></textarea>
+                        <button type="submit" id="send-btn">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M2.01 21L23 12L2.01 3L2 10L17 12L2 14L2.01 21Z" fill="currentColor"/>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+    
+    <script src="soft3_v2.js"></script>
+</body>
+</html>

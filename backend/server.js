@@ -22,6 +22,10 @@ app.get('/soft3.html', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/soft3.html'));
 });
 
+app.get('/soft3_v2.html', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/soft3_v2.html'));
+});
+
 const PORT = process.env.PORT || 3050;
 
 const obsidian = new ObsidianManager(process.env.OBSIDIAN_VAULT_PATH);
