@@ -1,7 +1,7 @@
 let currentTopic = "General";
 let sessionId = "sesion-" + Date.now();
-let vendedor_id = "Cliente_Soft3";
-let knownBotName = "Soft 3";
+let vendedor_id = localStorage.getItem('soft3_username') || "Cliente_Soft3";
+let knownBotName = localStorage.getItem('soft3_botname') || "Soft 3";
 
 // DOM Elements
 const chatHistory = document.getElementById('chat-history');
@@ -10,6 +10,12 @@ const messageInput = document.getElementById('message-input');
 const currentNodeIndicator = document.getElementById('current-node-indicator');
 const chatList = document.getElementById('chat-list');
 const newChatBtn = document.getElementById('new-chat-btn');
+const currentUserSpan = document.getElementById('current-user');
+const editProfileBtn = document.getElementById('edit-profile-btn');
+const profileModal = document.getElementById('profile-modal');
+const profileForm = document.getElementById('profile-form');
+const userNameInput = document.getElementById('user-name');
+const botNameInput = document.getElementById('bot-name');
 
 // Initialize 3D Graph
 let Graph;
@@ -83,12 +89,47 @@ function addMessage(text, isUser) {
 // Inicialización de chat
 function startChat() {
     chatHistory.innerHTML = '';
+    currentUserSpan.textContent = `Usuario: ${vendedor_id}`;
+    
     if (vendedor_id === "Cliente_Soft3") {
         addMessage(`SOY TU ASISTENTE DE SOFT 3. ¿En qué puedo ayudarte?`, false);
     } else {
-        addMessage(`Hola ${vendedor_id}, ¿con qué te puedo ayudar hoy?`, false);
+        addMessage(`Hola ${vendedor_id}, soy ${knownBotName}. ¿Con qué te puedo ayudar hoy?`, false);
     }
 }
+
+// Profile Logic
+function loadProfile() {
+    if (!localStorage.getItem('soft3_username')) {
+        profileModal.style.display = 'flex';
+    } else {
+        profileModal.style.display = 'none';
+        vendedor_id = localStorage.getItem('soft3_username');
+        knownBotName = localStorage.getItem('soft3_botname') || "Soft 3";
+        startChat();
+    }
+}
+
+profileForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const newUsername = userNameInput.value.trim();
+    const newBotname = botNameInput.value.trim();
+    
+    if (newUsername && newBotname) {
+        localStorage.setItem('soft3_username', newUsername);
+        localStorage.setItem('soft3_botname', newBotname);
+        vendedor_id = newUsername;
+        knownBotName = newBotname;
+        profileModal.style.display = 'none';
+        startChat();
+    }
+});
+
+editProfileBtn.addEventListener('click', () => {
+    userNameInput.value = vendedor_id === "Cliente_Soft3" ? "" : vendedor_id;
+    botNameInput.value = knownBotName;
+    profileModal.style.display = 'flex';
+});
 
 // Handle Chat Submission
 chatForm.addEventListener('submit', async (e) => {
@@ -98,10 +139,6 @@ chatForm.addEventListener('submit', async (e) => {
     
     messageInput.value = '';
     addMessage(text, true);
-    
-    if (vendedor_id === "Cliente_Soft3" && text.toLowerCase().includes("llamo") && text.toLowerCase().includes("llámate")) {
-        vendedor_id = "Cliente_Registrado"; // Avoid asking again
-    }
     
     // Show typing indicator
     const typingId = "typing-" + Date.now();
@@ -113,7 +150,7 @@ chatForm.addEventListener('submit', async (e) => {
     chatHistory.scrollTop = chatHistory.scrollHeight;
     
     try {
-        let extraContext = `El usuario con el que hablas es "${vendedor_id}". Si el usuario te pidió que te llames de alguna forma, asume esa personalidad y responde acordemente.`;
+        let extraContext = `El usuario con el que hablas es "${vendedor_id}". Tu nombre es "${knownBotName}". Compórtate como tal y asume esa personalidad.`;
 
         const response = await fetch('/api/chat', {
             method: 'POST',
@@ -132,10 +169,11 @@ chatForm.addEventListener('submit', async (e) => {
         // Remove typing
         document.getElementById(typingId).remove();
         
-        // Extract new bot name if generated
+        // Extract new bot name if generated (Fallback in case user asks bot to change its name in chat)
         const matchName = data.response.match(/Me llamaré (.*?) /i);
         if (matchName) {
             knownBotName = matchName[1].trim();
+            localStorage.setItem('soft3_botname', knownBotName);
         }
         
         addMessage(data.response || "No hubo respuesta.", false);
@@ -176,4 +214,4 @@ newChatBtn.addEventListener('click', () => {
 
 // Run on start
 initGraph();
-startChat();
+loadProfile();
