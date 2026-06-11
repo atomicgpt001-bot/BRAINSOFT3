@@ -1,199 +1,200 @@
-let currentTopic = "General";
-let sessionId = "sesion-" + Date.now();
-let vendedor_id = localStorage.getItem('soft3_username') || "Cliente_Soft3";
-let knownBotName = localStorage.getItem('soft3_botname') || "Soft 3";
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let currentTopic = 'General';
+let sessionId    = 'sesion-' + Date.now();
+let vendedor_id  = localStorage.getItem('soft3_username') || 'ATOMIC';
+let knownBotName = localStorage.getItem('soft3_botname')  || 'Soft 3';
 
-// DOM Elements
-const chatHistory = document.getElementById('chat-history');
-const chatForm = document.getElementById('chat-form');
-const messageInput = document.getElementById('message-input');
-const currentNodeIndicator = document.getElementById('current-node-indicator');
-const chatList = document.getElementById('chat-list');
-const newChatBtn = document.getElementById('new-chat-btn');
-const currentUserSpan = document.getElementById('current-user');
+// ─── DOM REFS ─────────────────────────────────────────────────────────────────
+const chatHistory   = document.getElementById('chat-history');
+const chatForm      = document.getElementById('chat-form');
+const messageInput  = document.getElementById('message-input');
+const newChatBtn    = document.getElementById('new-chat-btn');
+const currentUser   = document.getElementById('current-user');
 const editProfileBtn = document.getElementById('edit-profile-btn');
+const chatTopicSpan = document.getElementById('chat-topic');
+const nodeIndicator = document.getElementById('current-node-indicator');
 
-// Initialize 3D Graph
+// ─── COLOUR MAP ──────────────────────────────────────────────────────────────
+const GROUP_COLORS = {
+    0: '#58a6ff', // Núcleo
+    1: '#3fb950', // Softres root
+    2: '#39d353', // Módulos Softres
+    3: '#bc8cff', // Módulos Soft 3
+    4: '#e3b341', // Commits
+    5: '#f78166', // Errores
+    6: '#79c0ff', // Bóveda folders
+    7: '#adbac7', // Bóveda files
+};
+
+// ─── 3D GRAPH ─────────────────────────────────────────────────────────────────
 let Graph;
 
 function initGraph() {
     const elem = document.getElementById('graph-container');
-    
+    if (!elem) return;
+
     fetch('/api/graph')
-        .then(res => res.json())
+        .then(r => r.json())
         .then(gData => {
             if (!Graph) {
                 Graph = ForceGraph3D()(elem)
+                    .backgroundColor('#0d1117')
                     .graphData(gData)
                     .nodeLabel('label')
-                    .nodeColor(node => {
-                        if (node.group === 0) return '#003366'; // Soft 3 Core
-                        if (node.group === 1) return '#0056b3'; // Folders
-                        return '#007bff'; // Files
-                    })
-                    .nodeRelSize(6)
-                    .linkColor(() => '#dee2e6')
-                    .backgroundColor('#ffffff')
+                    .nodeColor(node => GROUP_COLORS[node.group] || '#8b949e')
+                    .nodeRelSize(5)
+                    .nodeVal(node => node.size || 4)
+                    .linkColor(() => '#30363d')
+                    .linkOpacity(0.6)
                     .onNodeClick(node => {
-                        // Update Context
                         currentTopic = node.label;
-                        currentNodeIndicator.textContent = `Rama: ${currentTopic}`;
-                        
-                        // Center Graph
-                        const distance = 40;
-                        const distRatio = 1 + distance/Math.hypot(node.x, node.y, node.z);
+                        chatTopicSpan.textContent = node.label;
+                        nodeIndicator.textContent = `Enfocado: ${node.label}`;
+
+                        const dist = 60;
+                        const ratio = 1 + dist / Math.hypot(node.x, node.y, node.z);
                         Graph.cameraPosition(
-                            { x: node.x * distRatio, y: node.y * distRatio, z: node.z * distRatio }, // new position
-                            node, // lookAt ({ x, y, z })
-                            3000  // ms transition duration
+                            { x: node.x * ratio, y: node.y * ratio, z: node.z * ratio },
+                            node,
+                            800
                         );
-                        
-                        // System message
-                        addMessage(`Cambiaste el enfoque a: ${currentTopic}. ¿En qué te ayudo con esta rama?`, false);
+
+                        addMessage(`📍 Contexto cambiado a: <strong>${node.label}</strong>. ¿En qué te puedo ayudar con este módulo?`, false);
                     });
+
+                window.addEventListener('resize', () => {
+                    if (Graph) {
+                        Graph.width(elem.clientWidth).height(elem.clientHeight);
+                    }
+                });
             } else {
                 Graph.graphData(gData);
             }
-                
-            // Setup resizing
-            window.addEventListener('resize', () => {
-                Graph.width(elem.clientWidth).height(elem.clientHeight);
-            });
-        });
+        })
+        .catch(err => console.error('[Graph] Error loading graph data:', err));
 }
 
-function addMessage(text, isUser) {
-    const msgDiv = document.createElement('div');
-    msgDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
-    
-    const contentDiv = document.createElement('div');
-    contentDiv.className = 'message-content';
-    
-    let finalText = text.replace(/\n/g, '<br>');
+// ─── CHAT UTILS ──────────────────────────────────────────────────────────────
+function addMessage(html, isUser) {
+    const wrapper = document.createElement('div');
+    wrapper.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
+
+    const bubble = document.createElement('div');
+    bubble.className = 'message-content';
+
     if (!isUser) {
-        finalText = `<strong>[${knownBotName}]</strong> ` + finalText;
+        bubble.innerHTML = `<strong style="color:#58a6ff">[${knownBotName}]</strong> ${html}`;
+    } else {
+        bubble.textContent = html;
     }
-    contentDiv.innerHTML = finalText;
-    
-    msgDiv.appendChild(contentDiv);
-    chatHistory.appendChild(msgDiv);
-    
-    // Auto-scroll
+
+    const meta = document.createElement('div');
+    meta.className = 'message-meta';
+    const now = new Date();
+    meta.textContent = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+    wrapper.appendChild(bubble);
+    wrapper.appendChild(meta);
+    chatHistory.appendChild(wrapper);
     chatHistory.scrollTop = chatHistory.scrollHeight;
 }
 
-// Inicialización de chat
 function startChat() {
     chatHistory.innerHTML = '';
-    currentUserSpan.textContent = `Usuario: ${vendedor_id}`;
-    
-    if (vendedor_id === "Cliente_Soft3") {
-        addMessage(`SOY TU ASISTENTE DE SOFT 3. ¿En qué puedo ayudarte?`, false);
-    } else {
-        addMessage(`Hola ${vendedor_id}, soy ${knownBotName}. ¿Con qué te puedo ayudar hoy?`, false);
-    }
+    currentUser.textContent = vendedor_id;
+    addMessage(`¡Hola <strong>${vendedor_id}</strong>! Soy <strong>${knownBotName}</strong>. Puedes hacerme clic en cualquier nodo del mapa para enfocarme en ese tema. ¿En qué te ayudo?`, false);
 }
 
-// Profile Logic
-function loadProfile() {
-    vendedor_id = localStorage.getItem('soft3_username') || "ATOMIC";
-    knownBotName = localStorage.getItem('soft3_botname') || "Soft 3";
-    startChat();
-}
-
-// Edit Profile (Simplified for now)
+// ─── PROFILE ─────────────────────────────────────────────────────────────────
 editProfileBtn.addEventListener('click', () => {
-    const newName = prompt("¿Cuál es tu nombre?", vendedor_id);
-    if (newName) {
-        localStorage.setItem('soft3_username', newName);
-        vendedor_id = newName;
-        startChat();
+    const newName = prompt('¿Cuál es tu nombre de usuario?', vendedor_id);
+    if (newName && newName.trim()) {
+        vendedor_id = newName.trim();
+        localStorage.setItem('soft3_username', vendedor_id);
+        currentUser.textContent = vendedor_id;
+        addMessage(`Perfecto, ahora te llamo <strong>${vendedor_id}</strong>.`, false);
     }
 });
 
-// Handle Chat Submission
+// ─── NEW CHAT ─────────────────────────────────────────────────────────────────
+newChatBtn.addEventListener('click', () => {
+    sessionId = 'sesion-' + Date.now();
+    currentTopic = 'General';
+    chatTopicSpan.textContent = 'General';
+    startChat();
+});
+
+// ─── SUBMIT ──────────────────────────────────────────────────────────────────
 chatForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const text = messageInput.value.trim();
     if (!text) return;
-    
+
     messageInput.value = '';
+    messageInput.style.height = 'auto';
     addMessage(text, true);
-    
-    // Show typing indicator
-    const typingId = "typing-" + Date.now();
+
+    // Typing indicator
+    const typingId = 'typing-' + Date.now();
     const typingDiv = document.createElement('div');
     typingDiv.className = 'message ai-message';
     typingDiv.id = typingId;
-    typingDiv.innerHTML = '<div class="message-content">...</div>';
+    typingDiv.innerHTML = '<div class="message-content"><div class="typing-dots"><span></span><span></span><span></span></div></div>';
     chatHistory.appendChild(typingDiv);
     chatHistory.scrollTop = chatHistory.scrollHeight;
-    
-    try {
-        let extraContext = `El usuario con el que hablas es "${vendedor_id}". Tu nombre es "${knownBotName}". Compórtate como tal y asume esa personalidad.`;
 
+    try {
+        const context = `El usuario es "${vendedor_id}". Tu nombre es "${knownBotName}". Módulo activo: "${currentTopic}".`;
         const response = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                message: text + "\n[System Context: " + extraContext + "]",
+                message: text + '\n[Context: ' + context + ']',
                 topic: currentTopic,
-                vendedor_id: vendedor_id,
+                vendedor_id,
                 session_id: sessionId,
                 persona: 'soft3'
             })
         });
-        
+
         const data = await response.json();
-        
-        // Remove typing
-        document.getElementById(typingId).remove();
-        
-        // Extract new bot name if generated (Fallback in case user asks bot to change its name in chat)
+        document.getElementById(typingId)?.remove();
+
         if (data.response) {
-            const matchName = data.response.match(/Me llamaré (.*?) /i);
-            if (matchName) {
-                knownBotName = matchName[1].trim();
+            // Auto-detect bot name change
+            const nameMatch = data.response.match(/me llamaré (\S+)/i);
+            if (nameMatch) {
+                knownBotName = nameMatch[1];
                 localStorage.setItem('soft3_botname', knownBotName);
             }
+            addMessage(data.response.replace(/\n/g, '<br>'), false);
+        } else {
+            addMessage('Sin respuesta del servidor.', false);
         }
-        
-        addMessage(data.response || "No hubo respuesta.", false);
-        
-        // Refresh graph if new node created
+
         if (data.shouldCreateNode) {
-            initGraph(); // Reload data
+            initGraph(); // refresh graph with new node
         }
-        
     } catch (err) {
-        document.getElementById(typingId).remove();
-        addMessage("Error de conexión con el Cerebro Soft 3.", false);
-        console.error(err);
+        document.getElementById(typingId)?.remove();
+        addMessage('❌ Error de conexión con el Cerebro Soft 3. Verifica que el servidor esté corriendo.', false);
+        console.error('[Chat]', err);
     }
 });
 
-// Auto-resize textarea
-messageInput.addEventListener('input', function() {
+// ─── TEXTAREA AUTO-RESIZE ─────────────────────────────────────────────────────
+messageInput.addEventListener('input', function () {
     this.style.height = 'auto';
-    this.style.height = (this.scrollHeight) + 'px';
-    if(this.value === '') {
-        this.style.height = 'auto';
-    }
+    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
 });
 
-messageInput.addEventListener('keydown', function(e) {
+messageInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        chatForm.dispatchEvent(new Event('submit'));
+        chatForm.dispatchEvent(new Event('submit', { cancelable: true }));
     }
 });
 
-// Session Management (Mock)
-newChatBtn.addEventListener('click', () => {
-    sessionId = "sesion-" + Date.now();
-    startChat();
-});
-
-// Run on start
-// initGraph();
-loadProfile();
+// ─── BOOT ─────────────────────────────────────────────────────────────────────
+initGraph();
+startChat();

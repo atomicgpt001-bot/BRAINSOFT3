@@ -117,22 +117,93 @@ app.get('/api/graph', (req, res) => {
     const structure = obsidian.getVaultStructure();
     const nodes = [];
     const links = [];
-    
-    // Core node
-    nodes.push({ id: 'Soft 3', group: 0, label: 'Núcleo Principal Soft 3' });
 
-    structure.forEach((folder, idx) => {
-        // Folder node
-        const folderId = folder.topic;
-        nodes.push({ id: folderId, group: 1, label: folder.topic });
-        // Link core to folder
-        links.push({ source: 'Soft 3', target: folderId, value: 2 });
-        
-        // Files in folder
+    // ── NÚCLEO ──────────────────────────────────────────────────────────────
+    nodes.push({ id: 'Soft3Core', group: 0, label: '🧠 Núcleo Soft 3', size: 12 });
+
+    // ── MÓDULOS SOFTRES (sesión de hoy) ──────────────────────────────────────
+    const softresModules = [
+        'Administración', 'Empleados', 'Inventario', 'Proveedores',
+        'Compras', 'Bodegas', 'Ventas', 'Hotelería',
+        'Clientes', 'Consultas', 'Reportes', 'Contabilidad',
+        'Gestión de Bancos', 'Utilerías', 'Ayudas'
+    ];
+    nodes.push({ id: 'SoftresRoot', group: 1, label: '📦 Softres Sistemas', size: 9 });
+    links.push({ source: 'Soft3Core', target: 'SoftresRoot', value: 3 });
+    softresModules.forEach(mod => {
+        const id = 'softres_' + mod;
+        nodes.push({ id, group: 2, label: mod, size: 5 });
+        links.push({ source: 'SoftresRoot', target: id, value: 1 });
+    });
+
+    // ── MÓDULOS INTERNOS SOFT 3 ───────────────────────────────────────────────
+    const soft3Modules = [
+        { id: 'mod_chat', label: '💬 Chat IA', group: 3 },
+        { id: 'mod_graph', label: '🌐 Grafo 3D', group: 3 },
+        { id: 'mod_obsidian', label: '📓 Bóveda Obsidian', group: 3 },
+        { id: 'mod_telegram', label: '📱 Telegram Bot', group: 3 },
+        { id: 'mod_imageeditor', label: '🖼️ Editor de Imágenes', group: 3 },
+        { id: 'mod_precios', label: '💰 Lista de Precios', group: 3 },
+        { id: 'mod_supabase', label: '🗄️ Base Datos Supabase', group: 3 },
+        { id: 'mod_admin', label: '⚙️ Panel Admin', group: 3 },
+    ];
+    soft3Modules.forEach(mod => {
+        nodes.push({ ...mod, size: 6 });
+        links.push({ source: 'Soft3Core', target: mod.id, value: 2 });
+    });
+
+    // ── COMMITS DE HOY (11 Jun 2026) ─────────────────────────────────────────
+    nodes.push({ id: 'commits', group: 4, label: '📝 Commits Hoy', size: 8 });
+    links.push({ source: 'Soft3Core', target: 'commits', value: 2 });
+    const todayCommits = [
+        { id: 'c1', label: 'Impl. personalización de perfil Soft3' },
+        { id: 'c2', label: 'Fix: vaultStructure forEach undefined' },
+        { id: 'c3', label: 'Fix: global brain graph loop' },
+        { id: 'c4', label: 'Reemplazar index.html con interfaz Soft3' },
+        { id: 'c5', label: 'Restaurar index.html original (REVERT)' },
+        { id: 'c6', label: 'Fix: layout responsivo pantallas angostas' },
+        { id: 'c7', label: 'Ocultar grafo 3D en pantallas estrechas' },
+        { id: 'c8', label: 'Bust caché CSS/JS v2' },
+        { id: 'c9', label: 'Eliminar modal de perfil (causa bug)' },
+        { id: 'c10', label: 'Crear soft3_v2.html sin caché' },
+    ];
+    todayCommits.forEach(commit => {
+        nodes.push({ id: commit.id, group: 4, label: commit.label, size: 4 });
+        links.push({ source: 'commits', target: commit.id, value: 1 });
+    });
+
+    // ── ERRORES DEL DÍA ───────────────────────────────────────────────────────
+    nodes.push({ id: 'errors', group: 5, label: '🚨 Errores Sesión', size: 8 });
+    links.push({ source: 'Soft3Core', target: 'errors', value: 2 });
+    const todayErrors = [
+        { id: 'e1', label: 'Bug: INT vs VARCHAR en foreign keys Softres' },
+        { id: 'e2', label: 'Bug: profileModal cubría toda la pantalla' },
+        { id: 'e3', label: 'Bug: ForceGraph3D empujaba el chat' },
+        { id: 'e4', label: 'Bug: Caché impidió aplicar CSS nuevo' },
+        { id: 'e5', label: 'Bug: fuser -k 3050 no encontró el proceso' },
+        { id: 'e6', label: 'Bug: PATCH servicios fallaba por tipo INT' },
+        { id: 'e7', label: 'Bug: soft3_v2 mezclada con lista precios' },
+    ];
+    todayErrors.forEach(err => {
+        nodes.push({ id: err.id, group: 5, label: err.label, size: 4 });
+        links.push({ source: 'errors', target: err.id, value: 1 });
+        // Link errors to related commits
+    });
+    // cross-links errors <-> commits
+    links.push({ source: 'e3', target: 'c6', value: 1 });
+    links.push({ source: 'e2', target: 'c9', value: 1 });
+    links.push({ source: 'e4', target: 'c8', value: 1 });
+
+    // ── BÓVEDA DINÁMICA (Obsidian) ────────────────────────────────────────────
+    nodes.push({ id: 'vault', group: 6, label: '📂 Bóveda Dinámica', size: 7 });
+    links.push({ source: 'Soft3Core', target: 'vault', value: 2 });
+    structure.forEach(folder => {
+        const folderId = 'vault_' + folder.topic;
+        nodes.push({ id: folderId, group: 6, label: folder.topic, size: 5 });
+        links.push({ source: 'vault', target: folderId, value: 1 });
         folder.files.forEach(file => {
-            const fileId = `${folder.topic}/${file}`;
-            nodes.push({ id: fileId, group: 2, label: file });
-            // Link folder to file
+            const fileId = folderId + '/' + file;
+            nodes.push({ id: fileId, group: 7, label: file, size: 3 });
             links.push({ source: folderId, target: fileId, value: 1 });
         });
     });
