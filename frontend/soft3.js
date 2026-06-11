@@ -215,5 +215,5 @@ newChatBtn.addEventListener('click', () => {
 });
 
 // Run on start
-initGraph();
+// initGraph();
 loadProfile();
