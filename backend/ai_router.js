@@ -1,6 +1,16 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const fs = require('fs');
 const path = require('path');
+const { softresServerRestart } = require('./softres_restart');
+
+// Contexto del día — cambios recientes en Softres (se carga al iniciar)
+const SOFTRES_CONTEXT = (() => {
+    try {
+        return fs.readFileSync(path.join(__dirname, 'softres_context_hoy.md'), 'utf8');
+    } catch {
+        return '[Contexto de Softres no disponible]';
+    }
+})();
 
 async function executeWithRetry(apiCall, maxRetries = 6) {
     for (let i = 0; i < maxRetries; i++) {
@@ -61,22 +71,26 @@ The user is talking about: "${currentTopic}".
 Message from user: "${message}"
 Has attached files: ${files.length > 0 ? 'Yes' : 'No'}
 
-CRITICAL RECENT CONTEXT: The backend team just fixed a major issue today where the 'servicios' table was not being created for new companies. They updated the Github Action and the '/comercio/patch-servicios' endpoint to correctly run a CREATE TABLE query for any tenant databases missing the 'servicios' table. The user successfully executed the patch from the browser.
+## CONTEXTO RECIENTE DEL PROYECTO SOFTRES (actualizado 11 Jun 2026):
+${SOFTRES_CONTEXT}
 
 Your goal is to act as their corporate assistant and help them with queries about the Soft 3 architecture.
+If the user asks to restart, update or pull the Softres server, set "restartServer": true.
 Task: Analyze the message.`;
             } else {
-                prompt = `You are the Virtual Corporate Brain of Atomic (a tech and sales company).
+                prompt = `You are ÍCARO, the Virtual Corporate Brain of Soft 3 and Atomic (a tech and sales company).
 The user talking to you is named: "${userProfile.userName}" (ID: ${vendedor_id}).
 The user wants you to act and be called as: "${userProfile.botName}".
 The user is talking about: "${currentTopic}".
 Message from user: "${message}"
 Has attached files: ${files.length > 0 ? 'Yes' : 'No'}
 
-CRITICAL RECENT CONTEXT: The backend team just fixed a major issue today where the 'servicios' table was not being created for new companies in the Softres ERP. They updated the Github Action and the '/comercio/patch-servicios' endpoint to correctly run a CREATE TABLE query for any tenant databases missing the 'servicios' table. The user successfully executed the patch from the browser.
+## CONTEXTO RECIENTE DEL PROYECTO SOFTRES (actualizado 11 Jun 2026):
+${SOFTRES_CONTEXT}
 
 Your goal is to act as their virtual assistant, help them, and PROACTIVELY ask for their daily sales reports, client updates, and metrics.
 If they provide metrics or client updates, you MUST save them using "saveReport" = true.
+If the user asks to restart, update or pull the Softres production server, set "restartServer": true.
 Task: Analyze the message.`;
             }
             
@@ -90,6 +104,7 @@ OUTPUT STRICTLY JSON WITHOUT MARKDOWN. Format:
   "reportData": { "tipo": "ventas|cliente|otro", "resumen": "...", "monto": 0 } (only if saveReport is true),
   "saveProfile": boolean (true ONLY if the user tells you their name, or tells you how they want YOU to be called),
   "userProfile": { "userName": "extracted user name", "botName": "extracted name they want to call you" } (only if saveProfile is true),
+  "restartServer": boolean (true ONLY if user explicitly asks to restart, update or pull the Softres production server),
   "instructionsForExecutor": "Tell the local AI what to respond to the user in Spanish.",
   "showWorkflowButtons": boolean (true if the user is in a guided workflow),
   "hideWorkflowButtons": boolean (true if the user wants to end)
@@ -146,6 +161,21 @@ OUTPUT STRICTLY JSON WITHOUT MARKDOWN. Format:
                     console.log("[SUPABASE] Reporte guardado con éxito.");
                 } catch (e) {
                     console.error("[SUPABASE] Error guardando reporte:", e);
+                }
+            }
+
+            // 🔧 HABILIDAD: Reinicio seguro del servidor Softres
+            if (parsedPlan.restartServer) {
+                console.log('[ÍCARO/SOFT3] Solicitud de reinicio del servidor Softres...');
+                try {
+                    const restartResult = await softresServerRestart();
+                    if (restartResult.success) {
+                        parsedPlan.instructionsForExecutor += ' ADEMÁS: comunica al usuario que el servidor de Softres fue actualizado y reiniciado exitosamente desde el bot.';
+                    } else {
+                        parsedPlan.instructionsForExecutor += ' ADEMÁS: avisa al usuario que intentaste reiniciar el servidor Softres pero hay un problema de conexión SSH. Deben verificar que SOFTRES_SERVER_HOST esté configurado en el .env del bot.';
+                    }
+                } catch (e) {
+                    console.error('[ÍCARO] Error en restart:', e.message);
                 }
             }
 
