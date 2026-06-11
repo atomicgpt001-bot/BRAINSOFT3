@@ -28,8 +28,13 @@ app.get('/soft3_v2.html', (req, res) => {
 
 const PORT = process.env.PORT || 3050;
 
+// API KEY fallback (can be overridden by .env)
+const GEMINI_KEY = process.env.GEMINI_API_KEY || 'AIzaSyCqAqzq4zVCJbaSozYZ7gw8bS00Z7BOHAA';
+
 const obsidian = new ObsidianManager(process.env.OBSIDIAN_VAULT_PATH);
-const ai = new AIRouter(process.env.GEMINI_API_KEY);
+const ai = new AIRouter(GEMINI_KEY);
+
+console.log(`[SERVER] GEMINI_API_KEY loaded: ${GEMINI_KEY ? GEMINI_KEY.substring(0,10) + '...' : 'NOT SET'}`);
 
 // Setup Multer for file uploads
 const upload = multer({ dest: path.join(__dirname, 'temp_uploads/') });
