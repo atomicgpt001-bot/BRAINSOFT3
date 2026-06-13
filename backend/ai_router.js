@@ -57,7 +57,7 @@ class AIRouter {
                 return { response: "Error: API KEY de Gemini no configurada.", shouldCreateNode: false, nodeData: null };
             }
 
-            const model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const model = this.genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
             
             // Procesar archivos si existen
             const imageParts = [];
