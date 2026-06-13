@@ -12,6 +12,15 @@ const SOFTRES_CONTEXT = (() => {
     }
 })();
 
+// Skill: Cómo hacer cambios de CSS en el dashboard de Softres
+const SOFTRES_CSS_SKILL = (() => {
+    try {
+        return fs.readFileSync(path.join(__dirname, 'softres_css_skill.md'), 'utf8');
+    } catch {
+        return '[Skill CSS de Softres no disponible]';
+    }
+})();
+
 async function executeWithRetry(apiCall, maxRetries = 6) {
     for (let i = 0; i < maxRetries; i++) {
         try {
@@ -74,6 +83,9 @@ Has attached files: ${files.length > 0 ? 'Yes' : 'No'}
 ## CONTEXTO RECIENTE DEL PROYECTO SOFTRES (actualizado 11 Jun 2026):
 ${SOFTRES_CONTEXT}
 
+## SKILL DE DISEÑO CSS PARA DASHBOARD DE SOFTRES (MODIFICAR TAMAÑO Y REDONDEZ DE TARJETAS/BADGES):
+${SOFTRES_CSS_SKILL}
+
 Your goal is to act as their corporate assistant and help them with queries about the Soft 3 architecture.
 If the user asks to restart, update or pull the Softres server, set "restartServer": true.
 Task: Analyze the message.`;
@@ -87,6 +99,9 @@ Has attached files: ${files.length > 0 ? 'Yes' : 'No'}
 
 ## CONTEXTO RECIENTE DEL PROYECTO SOFTRES (actualizado 11 Jun 2026):
 ${SOFTRES_CONTEXT}
+
+## SKILL DE DISEÑO CSS PARA DASHBOARD DE SOFTRES (MODIFICAR TAMAÑO Y REDONDEZ DE TARJETAS/BADGES):
+${SOFTRES_CSS_SKILL}
 
 Your goal is to act as their virtual assistant, help them, and PROACTIVELY ask for their daily sales reports, client updates, and metrics.
 If they provide metrics or client updates, you MUST save them using "saveReport" = true.
