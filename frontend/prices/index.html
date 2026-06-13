@@ -1,224 +1,1156 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Listado de Precios</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+    <title>ATOMIC // Lista de Precios & Asistente Virtual</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg-main: #06060c;
+            --bg-panel: rgba(13, 13, 23, 0.7);
+            --bg-card: rgba(22, 22, 38, 0.5);
+            --border-neon: rgba(0, 255, 204, 0.3);
+            --border-neon-glow: 0 0 10px rgba(0, 255, 204, 0.2);
+            --cyan: #00ffcc;
+            --magenta: #ff00ff;
+            --blue-neon: #3b82f6;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
-            background-color: #0d0d0d;
-            color: #fff;
-            font-family: 'Rajdhani', sans-serif;
-            padding: 10px;
-            font-size: 14px;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: radial-gradient(circle at 50% 50%, #111128 0%, #06060c 100%);
         }
-        h1 {
-            color: #00ffcc;
-            font-family: 'Orbitron', sans-serif;
+
+        /* LOGO / GLOW EFFECTS */
+        .neon-glow {
+            text-shadow: 0 0 8px var(--cyan);
+        }
+
+        /* ------------------ LOGIN SCREEN ------------------ */
+        #login-container {
+            width: 400px;
+            background: var(--bg-panel);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(0, 255, 204, 0.2);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 25px rgba(0, 255, 204, 0.1);
             text-align: center;
-            border-bottom: 1px solid #00ffcc;
-            padding-bottom: 5px;
-            margin-bottom: 15px;
-            font-size: 1.5rem;
+            z-index: 100;
+            transition: all 0.5s ease;
         }
-        /* Top Controls */
-        .controls-container {
+
+        .login-logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            color: var(--cyan);
+            margin-bottom: 5px;
+            letter-spacing: 2px;
+            font-weight: 700;
+        }
+
+        .login-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--cyan);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            background: rgba(10, 10, 15, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            border-color: var(--cyan);
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.2);
+        }
+
+        .input-group select option {
+            background-color: #0e0e18;
+            color: var(--text-main);
+        }
+
+        .btn-connect {
+            width: 100%;
+            background: linear-gradient(135deg, #00f3c1 0%, #00b4d8 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 14px;
+            color: #000;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(0, 255, 204, 0.3);
+            margin-top: 10px;
+        }
+
+        .btn-connect:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 255, 204, 0.5);
+            background: linear-gradient(135deg, #00ffcc 0%, #00c4e8 100%);
+        }
+
+        .login-error {
+            color: #ef4444;
+            font-size: 0.8rem;
+            margin-top: 15px;
+            display: none;
+        }
+
+        /* ------------------ MAIN CONTAINER (DASHBOARD) ------------------ */
+        #app-workspace {
+            display: none;
+            width: 100vw;
+            height: 100vh;
+            grid-template-columns: 280px 1fr 380px;
+            background-color: var(--bg-main);
+            transition: all 0.5s ease;
+        }
+
+        /* LEFT SIDEBAR */
+        .sidebar {
+            background: rgba(10, 10, 18, 0.9);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            margin-bottom: 15px;
+            padding: 20px;
+            overflow-y: auto;
         }
-        .search-bar {
-            width: 100%;
-            padding: 8px;
-            background: #111;
-            border: 1px solid #00ffcc;
-            color: #fff;
+
+        .sidebar-header {
             font-family: 'Orbitron', sans-serif;
-            border-radius: 5px;
-        }
-        .categories-container {
+            color: var(--cyan);
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 25px;
             display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: 1px;
         }
-        .category-link {
-            color: #ff00ff;
-            text-decoration: underline;
+
+        .profile-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .profile-name {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .profile-role {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.72rem;
+            color: var(--magenta);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .nav-section {
+            margin-bottom: 25px;
+        }
+
+        .nav-section-title {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .search-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .sidebar-search {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 255, 204, 0.2);
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: var(--text-main);
+            font-size: 0.88rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .sidebar-search:focus {
+            border-color: var(--cyan);
+            box-shadow: 0 0 8px rgba(0, 255, 204, 0.2);
+        }
+
+        .category-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .category-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            border-radius: 8px;
             cursor: pointer;
-            font-weight: bold;
-            font-size: 13px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            transition: all 0.2s;
         }
-        .category-link:hover, .category-link.active {
-            color: #00ffcc;
+
+        .category-item:hover, .category-item.active {
+            background: rgba(0, 255, 204, 0.05);
+            color: var(--cyan);
+            padding-left: 16px;
         }
-        /* Table */
+
+        .category-count {
+            font-size: 0.7rem;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2px 6px;
+            border-radius: 10px;
+            color: var(--text-muted);
+        }
+
+        .category-item.active .category-count {
+            background: rgba(0, 255, 204, 0.15);
+            color: var(--cyan);
+        }
+
+        .btn-brain-access {
+            display: none; /* Shown only to Admin */
+            width: 100%;
+            background: rgba(139, 92, 246, 0.15);
+            border: 1px solid rgba(139, 92, 246, 0.4);
+            border-radius: 8px;
+            padding: 12px;
+            color: #c4b5fd;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+            margin-top: auto;
+            text-decoration: none;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 10px rgba(139, 92, 246, 0.1);
+        }
+
+        .btn-brain-access:hover {
+            background: rgba(139, 92, 246, 0.3);
+            border-color: #8b5cf6;
+            color: white;
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .btn-logout {
+            margin-top: 15px;
+            background: transparent;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            color: #fca5a5;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        .btn-logout:hover {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: #ef4444;
+            color: white;
+        }
+
+        /* CENTER CONTENT (PRICE TABLE) */
+        .main-content {
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .content-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            color: var(--cyan);
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        .stat-badge {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 8px 15px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .stat-badge span {
+            color: var(--cyan);
+            font-weight: 700;
+        }
+
+        .table-wrapper {
+            background: var(--bg-panel);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            overflow: hidden;
+            flex: 1;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .table-scroll {
+            overflow-y: auto;
+            flex: 1;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 13px;
-        }
-        th, td {
-            border: 1px solid #333;
-            padding: 6px 8px; /* Compact padding */
             text-align: left;
+            font-size: 0.9rem;
         }
+
         th {
-            background-color: #111;
-            color: #ff00ff;
+            background-color: rgba(15, 15, 25, 0.9);
+            color: var(--cyan);
             font-family: 'Orbitron', sans-serif;
-            font-size: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
-        tr:nth-child(even) { background-color: #1a1a1a; }
-        tr:hover { background-color: rgba(0, 255, 204, 0.1); }
-        .price { color: #00ffcc; font-weight: bold; }
-        
-        /* Image Thumbnail */
-        .thumbnail-container {
+
+        td {
+            padding: 12px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+            color: var(--text-main);
+            vertical-align: middle;
+        }
+
+        tr {
+            transition: all 0.2s;
+        }
+
+        tr:nth-child(even) td {
+            background-color: rgba(255, 255, 255, 0.01);
+        }
+
+        tr:hover td {
+            background-color: rgba(0, 255, 204, 0.03);
+        }
+
+        .product-info-cell {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .product-image {
+            width: 44px;
+            height: 44px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .product-image:hover {
+            transform: scale(1.1);
+            border-color: var(--cyan);
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.3);
+        }
+
+        .product-text {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .product-name {
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        .product-code {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+
+        .category-badge {
+            background: rgba(255, 0, 255, 0.05);
+            border: 1px solid rgba(255, 0, 255, 0.15);
+            border-radius: 20px;
+            padding: 2px 10px;
+            font-size: 0.72rem;
+            color: #ff80ff;
+            font-family: 'Orbitron', sans-serif;
+            display: inline-block;
+        }
+
+        .price-text {
+            color: var(--cyan);
+            font-weight: 700;
+            font-size: 1.05rem;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .stock-badge {
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .stock-ok { color: #10b981; }
+        .stock-low { color: #f59e0b; }
+        .stock-none { color: #ef4444; }
+
+        .loading-table {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 15px;
+            height: 100%;
+            color: var(--magenta);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 0, 255, 0.1);
+            border-top: 3px solid var(--magenta);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        /* RIGHT CHAT PANEL */
+        .chat-panel {
+            background: rgba(10, 10, 18, 0.95);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .chat-header {
+            background: rgba(15, 15, 25, 0.9);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chat-bot-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .chat-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--cyan) 0%, var(--blue-neon) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #000;
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.2);
+        }
+
+        .chat-title-group {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .chat-bot-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: var(--cyan);
+            letter-spacing: 0.5px;
+        }
+
+        .chat-bot-status {
+            font-size: 0.7rem;
+            color: var(--text-muted);
             display: flex;
             align-items: center;
             gap: 5px;
         }
-        .thumbnail-img {
-            width: 30px;
-            height: 30px;
-            object-fit: cover;
-            border: 1px solid #555;
-            border-radius: 4px;
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #10b981;
+            animation: pulse 1.5s infinite;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 14px;
+            font-size: 0.88rem;
+            line-height: 1.4;
+            word-wrap: break-word;
+            animation: slideIn 0.3s ease;
+        }
+
+        .message.bot {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+            border-bottom-left-radius: 3px;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            background: linear-gradient(135deg, rgba(0, 243, 193, 0.1) 0%, rgba(0, 180, 216, 0.1) 100%);
+            border: 1px solid rgba(0, 255, 204, 0.2);
+            color: var(--text-main);
+            border-bottom-right-radius: 3px;
+        }
+
+        .chat-chips-container {
+            padding: 10px 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-top: 1px solid rgba(255, 255, 255, 0.02);
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+        }
+
+        .chat-chips-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .chat-chip {
+            white-space: nowrap;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: all 0.2s;
         }
-        .thumbnail-img:hover {
-            transform: scale(2);
-            position: relative;
-            z-index: 10;
-            border-color: #00ffcc;
+
+        .chat-chip:hover {
+            border-color: var(--cyan);
+            color: var(--cyan);
+            background: rgba(0, 255, 204, 0.03);
         }
-        .download-btn {
-            background: transparent;
-            border: 1px solid #00ffcc;
-            color: #00ffcc;
+
+        .chat-input-container {
+            padding: 15px 20px;
+            background: rgba(15, 15, 25, 0.95);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .chat-input-container input {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            padding: 12px 18px;
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.88rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .chat-input-container input:focus {
+            border-color: var(--cyan);
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .btn-send {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00f3c1 0%, #00b4d8 100%);
+            border: none;
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            font-size: 10px;
-            padding: 2px 5px;
-            border-radius: 3px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 10px rgba(0, 255, 204, 0.2);
+            flex-shrink: 0;
         }
-        .download-btn:hover { background: #00ffcc; color: #000; }
-        
-        .loading {
-            text-align: center;
-            color: #ff00ff;
-            font-family: 'Orbitron', sans-serif;
-            margin-top: 20px;
+
+        .btn-send:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(0, 255, 204, 0.4);
+        }
+
+        /* ANIMATIONS */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.5; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.5; }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
 <body>
 
-    <h1>LISTADO DE PRECIOS GLOBAL</h1>
-
-    <div class="controls-container">
-        <input type="text" id="search-input" class="search-bar" placeholder="🔍 Buscar por nombre o código...">
-        <div class="categories-container" id="categories-container">
-            <!-- Categories will be injected here -->
+    <!-- 🌐 PANTALLA DE LOGO/ACCESO HOLOGRÁFICO -->
+    <div id="login-container">
+        <div class="login-logo">ATOMIC SYSTEM</div>
+        <div class="login-subtitle">Lista de Precios & Enlace Neural</div>
+        
+        <div class="input-group">
+            <label for="username">Nombre de Usuario</label>
+            <input type="text" id="username" placeholder="Escribe tu nombre (ej. Nicolás)" value="">
         </div>
+
+        <div class="input-group">
+            <label for="user-role">Selecciona tu Rol</label>
+            <select id="user-role" onchange="togglePinField()">
+                <option value="vendedor">Vendedor</option>
+                <option value="editor">Editor</option>
+                <option value="coordinador">Coordinador</option>
+                <option value="administrador">Administrador</option>
+            </select>
+        </div>
+
+        <div class="input-group" id="pin-group" style="display: none;">
+            <label for="admin-pin">PIN de Administrador</label>
+            <input type="password" id="admin-pin" placeholder="PIN de Seguridad (ej. 1234)">
+        </div>
+
+        <button class="btn-connect" onclick="handleLogin()">CONECTAR ENLACE</button>
+        <div id="login-error" class="login-error">PIN de Administrador inválido.</div>
     </div>
 
-    <div id="loading" class="loading">Sincronizando Base de Datos...</div>
+    <!-- 💻 WORKSPACE DEL APLICATIVO -->
+    <div id="app-workspace">
+        
+        <!-- SIDEBAR IZQUIERDO -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <span class="neon-glow">🛰️ ATOMIC CORE</span>
+            </div>
 
-    <table id="prices-table" style="display:none;">
-        <thead>
-            <tr>
-                <th>Img</th>
-                <th>Cód</th>
-                <th>Producto / Servicio</th>
-                <th>Categoría</th>
-                <th>Stock</th>
-                <th>Precio</th>
-            </tr>
-        </thead>
-        <tbody id="prices-body">
-            <!-- Dynamic content -->
-        </tbody>
-    </table>
+            <div class="profile-card">
+                <div class="profile-role" id="display-role">Vendedor</div>
+                <div class="profile-name" id="display-name">Santiago</div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Búsqueda</div>
+                <div class="search-container">
+                    <input type="text" id="search-input" class="sidebar-search" placeholder="🔍 Buscar producto/código...">
+                </div>
+            </div>
+
+            <div class="nav-section" style="flex: 1; display: flex; flex-direction: column;">
+                <div class="nav-section-title">Categorías</div>
+                <div class="category-list" id="category-list">
+                    <!-- Dynamic categories -->
+                </div>
+            </div>
+
+            <!-- ENLACE AL CEREBRO DE SOFT3 (Solo para Administrador) -->
+            <a href="../soft3_v2.html" target="_blank" class="btn-brain-access" id="brain-link-btn">
+                🧠 PANEL CEREBRO 3D
+            </a>
+
+            <button class="btn-logout" onclick="handleLogout()">Desconectar</button>
+        </div>
+
+        <!-- LISTA DE PRECIOS CENTRAL -->
+        <div class="main-content">
+            <div class="content-header">
+                <h1 class="content-title">LISTADO DE PRECIOS GLOBAL</h1>
+                <div class="stat-badge">Productos Activos: <span id="product-count">0</span></div>
+            </div>
+
+            <div class="table-wrapper">
+                <div id="loading" class="loading-table">
+                    <div class="spinner"></div>
+                    <div>Sincronizando Base de Datos...</div>
+                </div>
+
+                <div class="table-scroll">
+                    <table id="prices-table" style="display: none;">
+                        <thead>
+                            <tr>
+                                <th>Información del Producto / Servicio</th>
+                                <th>Categoría</th>
+                                <th>Stock</th>
+                                <th>Precio Neto</th>
+                            </tr>
+                        </thead>
+                        <tbody id="prices-body">
+                            <!-- Dynamic rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- CHATBOT VIRTUAL ÍCARO DERECHO -->
+        <div class="chat-panel">
+            <div class="chat-header">
+                <div class="chat-bot-info">
+                    <div class="chat-avatar">Í</div>
+                    <div class="chat-title-group">
+                        <div class="chat-bot-title">ÍCARO // BOT</div>
+                        <div class="chat-bot-status"><div class="status-dot"></div>Enlace Neuronal Activo</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HISTORIAL DE CHAT -->
+            <div class="chat-messages" id="chat-messages">
+                <div class="message bot">
+                    ¡Hola! Soy <strong>ÍCARO</strong>, el asistente inteligente de la lista de precios. ¿Necesitas saber el precio, stock o código de algún producto en especial?
+                </div>
+            </div>
+
+            <!-- CHIPS RÁPIDOS -->
+            <div class="chat-chips-container">
+                <div class="chat-chip" onclick="quickAsk('precio de')">🔍 Consultar Precio</div>
+                <div class="chat-chip" onclick="quickAsk('stock de')">📦 Consultar Stock</div>
+                <div class="chat-chip" onclick="quickAsk('¿Cómo creo un cliente?')">💡 Ayuda sobre Soft3</div>
+            </div>
+
+            <!-- ENTRADA DE TEXTO -->
+            <div class="chat-input-container">
+                <input type="text" id="chat-input" placeholder="Pregunta sobre precios, stock o comandos..." onkeydown="handleChatKey(event)">
+                <button class="btn-send" onclick="sendChatMessage()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+            </div>
+        </div>
+
+    </div>
 
     <script>
         let allProducts = [];
+        let filteredProducts = [];
         let currentCategory = 'Todas';
+
+        // Check active session
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedUser = localStorage.getItem('atomic_user');
+            const savedRole = localStorage.getItem('atomic_role');
+            if (savedUser && savedRole) {
+                showWorkspace(savedUser, savedRole);
+            }
+        });
+
+        function togglePinField() {
+            const role = document.getElementById('user-role').value;
+            const pinGroup = document.getElementById('pin-group');
+            if (role === 'administrador') {
+                pinGroup.style.display = 'block';
+            } else {
+                pinGroup.style.display = 'none';
+            }
+        }
+
+        function handleLogin() {
+            const username = document.getElementById('username').value.trim() || 'Asesor';
+            const role = document.getElementById('user-role').value;
+            const pin = document.getElementById('admin-pin').value;
+            const errorDiv = document.getElementById('login-error');
+
+            errorDiv.style.display = 'none';
+
+            if (role === 'administrador') {
+                // Pin simple check
+                if (pin !== '1234') {
+                    errorDiv.innerText = "PIN de Administrador inválido. Intenta con 1234.";
+                    errorDiv.style.display = 'block';
+                    return;
+                }
+            }
+
+            localStorage.setItem('atomic_user', username);
+            localStorage.setItem('atomic_role', role);
+            showWorkspace(username, role);
+        }
+
+        function showWorkspace(username, role) {
+            document.getElementById('login-container').style.display = 'none';
+            const workspace = document.getElementById('app-workspace');
+            workspace.style.display = 'grid';
+
+            document.getElementById('display-name').innerText = username;
+            document.getElementById('display-role').innerText = role;
+
+            // Role-based visibility
+            const brainLinkBtn = document.getElementById('brain-link-btn');
+            if (role === 'administrador') {
+                brainLinkBtn.style.display = 'block';
+            } else {
+                brainLinkBtn.style.display = 'none';
+            }
+
+            // Load products
+            fetchPrices();
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('atomic_user');
+            localStorage.removeItem('atomic_role');
+            document.getElementById('app-workspace').style.display = 'none';
+            document.getElementById('login-container').style.display = 'block';
+            
+            // reset form fields
+            document.getElementById('username').value = '';
+            document.getElementById('admin-pin').value = '';
+            document.getElementById('user-role').value = 'vendedor';
+            togglePinField();
+        }
 
         async function fetchPrices() {
             try {
                 const res = await fetch('/api/prices');
                 const data = await res.json();
                 
-                if(data.success) {
+                if (data.success) {
                     allProducts = data.products;
-                    extractCategories();
+                    filteredProducts = allProducts;
+                    renderCategories();
                     renderTable();
                     document.getElementById('loading').style.display = 'none';
                     document.getElementById('prices-table').style.display = 'table';
                 } else {
-                    document.getElementById('loading').innerText = 'Error: ' + data.error;
+                    document.getElementById('loading').innerHTML = '<div>Error: ' + data.error + '</div>';
                 }
             } catch(e) {
-                document.getElementById('loading').innerText = 'Error de conexión Neural.';
+                document.getElementById('loading').innerHTML = '<div>Error de conexión a la base de datos de precios.</div>';
             }
         }
 
-        function extractCategories() {
-            const container = document.getElementById('categories-container');
-            const categories = new Set();
-            allProducts.forEach(p => categories.add(p.category));
+        function renderCategories() {
+            const list = document.getElementById('category-list');
+            const categories = {};
             
-            let html = `<span class="category-link active" onclick="filterCategory('Todas', this)">Todas</span>`;
-            categories.forEach(cat => {
-                html += `<span class="category-link" onclick="filterCategory('${cat}', this)">${cat}</span>`;
+            allProducts.forEach(p => {
+                categories[p.category] = (categories[p.category] || 0) + 1;
             });
-            container.innerHTML = html;
+            
+            let html = `
+                <div class="category-item ${currentCategory === 'Todas' ? 'active' : ''}" onclick="filterCategory('Todas')">
+                    <span>Todas las Categorías</span>
+                    <span class="category-count">${allProducts.length}</span>
+                </div>
+            `;
+
+            for (const cat in categories) {
+                html += `
+                    <div class="category-item ${currentCategory === cat ? 'active' : ''}" onclick="filterCategory('${cat}')">
+                        <span>${cat}</span>
+                        <span class="category-count">${categories[cat]}</span>
+                    </div>
+                `;
+            }
+            list.innerHTML = html;
         }
 
-        window.filterCategory = function(category, element) {
-            currentCategory = category;
-            document.querySelectorAll('.category-link').forEach(el => el.classList.remove('active'));
-            if(element) element.classList.add('active');
+        function filterCategory(cat) {
+            currentCategory = cat;
+            renderCategories();
             renderTable();
-        };
+        }
 
+        // Search trigger
         document.getElementById('search-input').addEventListener('input', renderTable);
 
         function renderTable() {
             const tbody = document.getElementById('prices-body');
-            const search = document.getElementById('search-input').value.toLowerCase();
+            const searchVal = document.getElementById('search-input').value.toLowerCase();
             tbody.innerHTML = '';
 
-            const filtered = allProducts.filter(p => {
-                const matchCategory = currentCategory === 'Todas' || p.category === currentCategory;
-                const matchSearch = p.name.toLowerCase().includes(search) || p.code.toLowerCase().includes(search);
-                return matchCategory && matchSearch;
+            filteredProducts = allProducts.filter(p => {
+                const matchCat = currentCategory === 'Todas' || p.category === currentCategory;
+                const matchSearch = p.name.toLowerCase().includes(searchVal) || p.code.toLowerCase().includes(searchVal);
+                return matchCat && matchSearch;
             });
 
-            filtered.forEach(p => {
+            document.getElementById('product-count').innerText = filteredProducts.length;
+
+            filteredProducts.forEach(p => {
                 const tr = document.createElement('tr');
+                
+                // Stock styling
+                let stockClass = 'stock-ok';
+                let stockText = `${p.stock} U`;
+                if (p.stock === null) {
+                    stockText = '-';
+                    stockClass = '';
+                } else if (p.stock <= 0) {
+                    stockText = 'Agotado';
+                    stockClass = 'stock-none';
+                } else if (p.stock <= 5) {
+                    stockText = `Crítico (${p.stock})`;
+                    stockClass = 'stock-low';
+                }
+
                 tr.innerHTML = `
                     <td>
-                        <div class="thumbnail-container">
-                            <img src="${p.image}" class="thumbnail-img" onclick="window.open('${p.image}', '_blank')" title="Ver Foto">
-                            <a href="${p.image}" download="Producto_${p.code}" target="_blank" class="download-btn">⬇️</a>
+                        <div class="product-info-cell">
+                            <img src="${p.image}" class="product-image" onclick="window.open('${p.image}', '_blank')" title="Ampliar imagen">
+                            <div class="product-text">
+                                <div class="product-name">${p.name}</div>
+                                <div class="product-code">CÓD: ${p.code}</div>
+                            </div>
                         </div>
                     </td>
-                    <td style="font-size:11px; color:#aaa;">${p.code}</td>
-                    <td style="font-weight:bold;">${p.name}</td>
-                    <td>${p.category}</td>
-                    <td>${p.stock !== null ? p.stock : '-'}</td>
-                    <td class="price">$ ${p.price.toFixed(2)}</td>
+                    <td><span class="category-badge">${p.category}</span></td>
+                    <td><span class="stock-badge ${stockClass}">${stockText}</span></td>
+                    <td class="price-text">$ ${p.price.toFixed(2)}</td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        fetchPrices();
+        /* ------------------ CHATBOT BUSINESS LOGIC ------------------ */
+        
+        function quickAsk(prefix) {
+            const input = document.getElementById('chat-input');
+            input.value = prefix + " ";
+            input.focus();
+        }
+
+        function handleChatKey(e) {
+            if (e.key === 'Enter') {
+                sendChatMessage();
+            }
+        }
+
+        async function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const messageText = input.value.trim();
+            if (!messageText) return;
+
+            input.value = '';
+
+            // Render user message
+            renderMessage(messageText, 'user');
+
+            // 1. Local Intelligent Lookup for Product/Price Queries
+            const lowerMessage = messageText.toLowerCase();
+            let matchedProducts = [];
+
+            // If user asks for price or stock of a product name
+            if (lowerMessage.includes('precio') || lowerMessage.includes('cuanto') || lowerMessage.includes('cuesta') || lowerMessage.includes('stock') || lowerMessage.includes('valor')) {
+                // try to extract product keywords (exclude common words)
+                const keywords = lowerMessage
+                    .replace(/precio|de|cuanto|cuesta|stock|valor|los|las|el|la|dame|tiene|me|das/g, '')
+                    .trim()
+                    .split(/\s+/)
+                    .filter(w => w.length > 2);
+
+                if (keywords.length > 0) {
+                    matchedProducts = allProducts.filter(p => {
+                        return keywords.every(kw => p.name.toLowerCase().includes(kw));
+                    });
+                }
+            }
+
+            // If we found local matches, answer instantly!
+            if (matchedProducts.length > 0) {
+                let reply = `He encontrado ${matchedProducts.length} coincidencia(s) en la lista de precios:\n<ul>`;
+                matchedProducts.slice(0, 4).forEach(p => {
+                    let stockInfo = p.stock !== null ? `Stock: ${p.stock}` : 'Stock: N/A';
+                    reply += `<li style="margin-top: 5px;"><strong>${p.name}</strong> - <span style="color:#00ffcc">$${p.price.toFixed(2)}</span> (${stockInfo}, Cód: ${p.code})</li>`;
+                });
+                reply += `</ul>`;
+                if (matchedProducts.length > 4) {
+                    reply += `<div style="margin-top: 5px; font-size: 0.8rem; color: #888;">(Mostrando los primeros 4 resultados. Escribe más letras para filtrar mejor).</div>`;
+                }
+                
+                // Filter the table view as well to help the user visually!
+                const searchInput = document.getElementById('search-input');
+                searchInput.value = keywords.join(' ');
+                renderTable();
+
+                setTimeout(() => {
+                    renderMessage(reply, 'bot');
+                }, 500);
+                return;
+            }
+
+            // 2. Call backend neural brain (Icaro) if not local match
+            const userName = localStorage.getItem('atomic_user') || 'Asesor';
+            const userRole = localStorage.getItem('atomic_role') || 'vendedor';
+
+            // Show typing indicator
+            const typingId = renderMessage('<div class="spinner" style="width: 15px; height: 15px; border-width: 2px;"></div> Procesando enlace...', 'bot');
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: messageText,
+                        topic: 'Lista de Precios',
+                        vendedor_id: userName,
+                        persona: 'icaro'
+                    })
+                });
+
+                const data = await response.json();
+                
+                // Remove typing indicator
+                document.getElementById(typingId).remove();
+
+                if (data.instructionsForExecutor) {
+                    renderMessage(data.instructionsForExecutor, 'bot');
+                } else if (data.response) {
+                    renderMessage(data.response, 'bot');
+                } else {
+                    renderMessage("Enlace procesado con éxito.", 'bot');
+                }
+            } catch(e) {
+                document.getElementById(typingId).remove();
+                renderMessage("⚠️ Error: No se pudo conectar al enlace neuronal de ÍCARO. El servidor local podría estar sin red.", 'bot');
+            }
+        }
+
+        let msgCounter = 0;
+        function renderMessage(html, sender) {
+            const chatMessages = document.getElementById('chat-messages');
+            const msgDiv = document.createElement('div');
+            msgDiv.classList.add('message', sender);
+            
+            const id = 'msg-' + (++msgCounter);
+            msgDiv.id = id;
+            msgDiv.innerHTML = html;
+            
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return id;
+        }
     </script>
 </body>
 </html>
