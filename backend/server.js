@@ -66,15 +66,15 @@ if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_BOT_TOKEN !== 'your_t
 const sql = require('postgres')('postgresql://postgres.kkvujjyohspdynxltwqo:Jp2024013gg002@aws-1-us-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true');
 
 app.post('/api/chat', async (req, res) => {
-    const { message, topic, vendedor_id, persona } = req.body;
-    console.log(`[CHAT] Recibido: ${message} (Tema: ${topic}, Vendedor: ${vendedor_id}, Persona: ${persona})`);
+    const { message, topic, vendedor_id, persona, role } = req.body;
+    console.log(`[CHAT] Recibido: ${message} (Tema: ${topic}, Vendedor: ${vendedor_id}, Persona: ${persona}, Rol: ${role})`);
     
     // Log user message
     if (vendedor_id) {
         await sql`INSERT INTO conversaciones (vendedor_id, emisor, mensaje) VALUES (${vendedor_id}, 'user', ${message})`.catch(e => console.error(e));
     }
     
-    const result = await ai.processMessage(message, topic, [], obsidian, vendedor_id, sql, persona);
+    const result = await ai.processMessage(message, topic, [], obsidian, vendedor_id, sql, persona, role);
     
     // Log AI response
     if (vendedor_id && result.response) {
@@ -82,7 +82,8 @@ app.post('/api/chat', async (req, res) => {
     }
     
     if (result.shouldCreateNode && result.nodeData) {
-        const filepath = obsidian.createNode(topic, result.nodeData.title, result.nodeData.content);
+        const folder = result.nodeFolder || topic;
+        const filepath = obsidian.createNode(folder, result.nodeData.title, result.nodeData.content);
         console.log(`[OBSIDIAN] Nodo creado en ${filepath}`);
     }
 
@@ -90,16 +91,16 @@ app.post('/api/chat', async (req, res) => {
 });
 
 app.post('/api/chat-upload', upload.array('files'), async (req, res) => {
-    const { message, topic, vendedor_id, persona } = req.body;
+    const { message, topic, vendedor_id, persona, role } = req.body;
     const files = req.files || [];
-    console.log(`[CHAT UPLOAD] Recibido: ${message} (Tema: ${topic}, Vendedor: ${vendedor_id}, Persona: ${persona}) - ${files.length} archivos.`);
+    console.log(`[CHAT UPLOAD] Recibido: ${message} (Tema: ${topic}, Vendedor: ${vendedor_id}, Persona: ${persona}, Rol: ${role}) - ${files.length} archivos.`);
     
     // Log user message
     if (vendedor_id) {
         await sql`INSERT INTO conversaciones (vendedor_id, emisor, mensaje) VALUES (${vendedor_id}, 'user', ${message + ' [Archivos Adjuntos]'})`.catch(e => console.error(e));
     }
     
-    const result = await ai.processMessage(message, topic, files, obsidian, vendedor_id, sql, persona);
+    const result = await ai.processMessage(message, topic, files, obsidian, vendedor_id, sql, persona, role);
     
     // Log AI response
     if (vendedor_id && result.response) {
@@ -107,7 +108,8 @@ app.post('/api/chat-upload', upload.array('files'), async (req, res) => {
     }
     
     if (result.shouldCreateNode && result.nodeData) {
-        const filepath = obsidian.createNode(topic, result.nodeData.title, result.nodeData.content);
+        const folder = result.nodeFolder || topic;
+        const filepath = obsidian.createNode(folder, result.nodeData.title, result.nodeData.content);
         console.log(`[OBSIDIAN] Nodo creado en ${filepath}`);
     }
 

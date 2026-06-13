@@ -706,6 +706,10 @@
             box-shadow: 0 4px 15px rgba(0, 255, 204, 0.4);
         }
 
+        .btn-attach:hover {
+            color: var(--cyan) !important;
+        }
+
         /* ANIMATIONS */
         @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -850,8 +854,21 @@
                 <div class="chat-chip" onclick="quickAsk('cuales son mis responsabilidades en mi rol')">💼 Guía Laboral</div>
             </div>
 
+            <!-- FILE PREVIEW CONTAINER -->
+            <div id="file-preview-container" style="display: none; padding: 10px 20px; background: rgba(15, 15, 25, 0.95); border-top: 1px solid rgba(255, 255, 255, 0.05); align-items: center; gap: 10px;">
+                <div style="position: relative; width: 50px; height: 50px; border-radius: 6px; overflow: hidden; border: 1px solid var(--cyan); flex-shrink: 0;">
+                    <img id="file-preview-img" src="" style="width: 100%; height: 100%; object-fit: cover;">
+                    <button onclick="clearSelectedFile()" style="position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.6); border: none; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; color: #fff; cursor: pointer; font-size: 10px; padding: 0; line-height: 1;">✕</button>
+                </div>
+                <div style="font-size: 0.75rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" id="file-preview-name">imagen.png</div>
+            </div>
+
             <!-- ENTRADA DE TEXTO -->
             <div class="chat-input-container">
+                <input type="file" id="chat-file-input" accept="image/*" style="display: none;" onchange="handleFileSelected(event)">
+                <button class="btn-attach" onclick="document.getElementById('chat-file-input').click()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 5px; transition: color 0.2s;" title="Subir imagen">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                </button>
                 <input type="text" id="chat-input" placeholder="Pregunta sobre precios, stock o comandos..." onkeydown="handleChatKey(event)">
                 <button class="btn-send" onclick="sendChatMessage()">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
@@ -1186,76 +1203,127 @@
             }, 150);
         };
 
+        let selectedFile = null;
+
+        function handleFileSelected(e) {
+            const file = e.target.files[0];
+            if (file) {
+                selectedFile = file;
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    document.getElementById('file-preview-img').src = evt.target.result;
+                    document.getElementById('file-preview-name').innerText = file.name;
+                    document.getElementById('file-preview-container').style.display = 'flex';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function clearSelectedFile() {
+            selectedFile = null;
+            document.getElementById('chat-file-input').value = '';
+            document.getElementById('file-preview-container').style.display = 'none';
+        }
+
         async function sendChatMessage() {
             const input = document.getElementById('chat-input');
             const messageText = input.value.trim();
-            if (!messageText) return;
+            if (!messageText && !selectedFile) return;
 
             input.value = '';
 
             // Render user message
-            renderMessage(messageText, 'user');
+            let displayMsg = messageText;
+            if (selectedFile) {
+                displayMsg = `<div style="display:flex; flex-direction:column; gap:8px;">
+                    <img src="${document.getElementById('file-preview-img').src}" style="max-width:150px; border-radius:6px; border:1px solid rgba(255,255,255,0.1);">
+                    <div>${messageText || '<i>Imagen adjunta</i>'}</div>
+                </div>`;
+            }
+            renderMessage(displayMsg, 'user');
 
-            // 1. Check local database with fuzzy typo-tolerant + price range filters
-            const localResult = searchProductsLocal(messageText);
+            // 1. Check local database with fuzzy typo-tolerant + price range filters (ONLY IF NO IMAGE ATTACHED)
+            if (!selectedFile) {
+                const localResult = searchProductsLocal(messageText);
 
-            if (localResult && localResult.products.length > 0) {
-                let rangeText = '';
-                if (localResult.hasPriceFilter) {
-                    rangeText = ` con precio entre $${localResult.minPrice} y $${localResult.maxPrice === Infinity ? 'más' : localResult.maxPrice}`;
+                if (localResult && localResult.products.length > 0) {
+                    let rangeText = '';
+                    if (localResult.hasPriceFilter) {
+                        rangeText = ` con precio entre $${localResult.minPrice} y $${localResult.maxPrice === Infinity ? 'más' : localResult.maxPrice}`;
+                    }
+
+                    let reply = `He encontrado ${localResult.products.length} coincidencia(s) en la lista de precios${rangeText}:\n<ul style="margin: 8px 0 0 15px; padding: 0; list-style-type: square;">`;
+                    
+                    localResult.products.slice(0, 5).forEach(p => {
+                        let stockInfo = p.stock !== null ? `Stock: ${p.stock}` : 'Stock: N/A';
+                        reply += `<li style="margin-top: 6px; font-size: 0.85rem;">
+                            <strong>${p.name}</strong> - <span style="color:#00ffcc; font-weight:700;">$${p.price.toFixed(2)}</span> (${stockInfo}) 
+                            <a href="javascript:void(0)" onclick="highlightAndFilterProduct('${p.id}')" style="color:#ff00ff; text-decoration:underline; font-weight:bold; margin-left:5px;">[Ver Producto]</a>
+                        </li>`;
+                    });
+                    
+                    reply += `</ul>`;
+                    
+                    if (localResult.products.length > 5) {
+                        reply += `<div style="margin-top: 8px; font-size: 0.78rem; color: var(--text-muted);">(Mostrando los primeros 5 resultados de ${localResult.products.length}. Sé más específico para filtrar mejor).</div>`;
+                    }
+
+                    // Apply the search input locally to filter the table view immediately!
+                    if (localResult.keywords.length > 0) {
+                        document.getElementById('search-input').value = localResult.keywords.join(' ');
+                        renderTable();
+                    }
+
+                    setTimeout(() => {
+                        renderMessage(reply, 'bot');
+                    }, 400);
+                    return;
+                } else if (localResult && localResult.products.length === 0) {
+                    // If they explicitly did a product query but no results matched
+                    setTimeout(() => {
+                        renderMessage(`No encontré ningún producto que coincida con tu búsqueda ni filtros de precio en la base de datos local. ¿Deseas intentar con otros términos?`, 'bot');
+                    }, 400);
+                    return;
                 }
-
-                let reply = `He encontrado ${localResult.products.length} coincidencia(s) en la lista de precios${rangeText}:\n<ul style="margin: 8px 0 0 15px; padding: 0; list-style-type: square;">`;
-                
-                localResult.products.slice(0, 5).forEach(p => {
-                    let stockInfo = p.stock !== null ? `Stock: ${p.stock}` : 'Stock: N/A';
-                    reply += `<li style="margin-top: 6px; font-size: 0.85rem;">
-                        <strong>${p.name}</strong> - <span style="color:#00ffcc; font-weight:700;">$${p.price.toFixed(2)}</span> (${stockInfo}) 
-                        <a href="javascript:void(0)" onclick="highlightAndFilterProduct('${p.id}')" style="color:#ff00ff; text-decoration:underline; font-weight:bold; margin-left:5px;">[Ver Producto]</a>
-                    </li>`;
-                });
-                
-                reply += `</ul>`;
-                
-                if (localResult.products.length > 5) {
-                    reply += `<div style="margin-top: 8px; font-size: 0.78rem; color: var(--text-muted);">(Mostrando los primeros 5 resultados de ${localResult.products.length}. Sé más específico para filtrar mejor).</div>`;
-                }
-
-                // Apply the search input locally to filter the table view immediately!
-                if (localResult.keywords.length > 0) {
-                    document.getElementById('search-input').value = localResult.keywords.join(' ');
-                    renderTable();
-                }
-
-                setTimeout(() => {
-                    renderMessage(reply, 'bot');
-                }, 400);
-                return;
-            } else if (localResult && localResult.products.length === 0) {
-                // If they explicitly did a product query but no results matched
-                setTimeout(() => {
-                    renderMessage(`No encontré ningún producto que coincida con tu búsqueda ni filtros de precio en la base de datos local. ¿Deseas intentar con otros términos?`, 'bot');
-                }, 400);
-                return;
             }
 
-            // 2. Call backend neural brain (Icaro) if not local product match
+            // 2. Call backend neural brain (Icaro)
             const userName = localStorage.getItem('atomic_user') || 'Asesor';
             const userRole = localStorage.getItem('atomic_role') || 'vendedor';
 
             const typingId = renderMessage('<div class="spinner" style="width: 15px; height: 15px; border-width: 2px;"></div> Procesando enlace...', 'bot');
 
+            const fileToSend = selectedFile;
+            clearSelectedFile();
+
             try {
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        message: messageText,
-                        topic: 'Lista de Precios',
-                        vendedor_id: userName,
-                        persona: 'icaro'
-                    })
-                });
+                let response;
+                if (fileToSend) {
+                    const formData = new FormData();
+                    formData.append('message', messageText || '[Imagen adjunta]');
+                    formData.append('topic', 'Lista de Precios');
+                    formData.append('vendedor_id', userName);
+                    formData.append('persona', 'icaro');
+                    formData.append('role', userRole);
+                    formData.append('files', fileToSend);
+
+                    response = await fetch('/api/chat-upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+                } else {
+                    response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            message: messageText,
+                            topic: 'Lista de Precios',
+                            vendedor_id: userName,
+                            persona: 'icaro',
+                            role: userRole
+                        })
+                    });
+                }
 
                 const data = await response.json();
                 

@@ -51,7 +51,7 @@ class AIRouter {
         this.genAI = new GoogleGenerativeAI(apiKey);
     }
 
-    async processMessage(message, currentTopic, files = [], obsidianManager, vendedor_id = 'Unknown', sql = null, persona = 'icaro') {
+    async processMessage(message, currentTopic, files = [], obsidianManager, vendedor_id = 'Unknown', sql = null, persona = 'icaro', role = 'vendedor') {
         try {
             if (!this.genAI.apiKey || this.genAI.apiKey === 'your_gemini_api_key_here') {
                 return { response: "Error: API KEY de Gemini no configurada.", shouldCreateNode: false, nodeData: null };
@@ -96,6 +96,7 @@ The user wants you to act and be called as: "${userProfile.botName}".
 The user is talking about: "${currentTopic}".
 Message from user: "${message}"
 Has attached files: ${files.length > 0 ? 'Yes' : 'No'}
+User Role: "${role}"
 
 ## CONTEXTO RECIENTE DEL PROYECTO SOFTRES (actualizado 11 Jun 2026):
 ${SOFTRES_CONTEXT}
@@ -108,6 +109,23 @@ Provide advice, tips, and training to the sales team on:
 1. Sales techniques, closing strategies, and handling customer objections.
 2. Step-by-step guidance on how to operate the Softres ERP modules.
 3. Career growth tips, onboarding support, and time management.
+
+## DIRECTRICES DE GUÍA LABORAL Y PUBLICACIONES DE VENTAS:
+- Esporádicamente durante el día mientras estés conversando o cuando el usuario mande un mensaje de chat (especialmente si es vendedor, role === "vendedor"), debes recordarle que haga sus publicaciones y que responda a tiempo sus mensajes para mejorar sus ventas.
+- Menciónale la importancia de, después de publicar, compartir en grupos de Facebook/ventas inmediatamente para aumentar el alcance.
+- Menciónale los campos a llenar en sus publicaciones y qué significa cada uno:
+  * Título: Es el lugar donde se coloca el enunciado principal del producto y su característica más llamativa/gancho.
+  * Descripción: Es la parte donde se describen más detalladamente las características genéricas del producto y especificaciones.
+  * Etiquetas: Donde se colocan palabras individuales que tienen que ver directamente con la publicación para mejorar el posicionamiento/SEO en búsquedas.
+  * Ubicación: Recomiéndales siempre no publicar directamente en Quito centro, porque en Quito hay demasiada competencia y está muy saturado. Explícales que pueden publicar en Quito, sí, pero en las zonas fuera del centro de Quito (periferias, valles, suburbios). Y si publican en el centro, adviérteles que no pongan varias publicaciones de lo mismo, sino solo una o dos a lo mucho. Sugiéreles probar publicando en provincias (fuera de Quito), porque en provincias hay bastantes clientes con excelente poder adquisitivo ("bastante dinero") y menor saturación de anuncios. No les digas que no publiquen del todo en Quito, sino que moderen la forma en que lo hacen.
+- Recuérdales proactivamente que puedes guardar memoria para ellos:
+  * Puedes colectar y guardar los números de teléfono de clientes que consiguen.
+  * Pueden contarte cosas del cliente (detalles de la negociación, objeciones, gustos) y pedirte consejos de venta sobre cómo abordarlo.
+  * Pueden darte contexto subiendo una imagen (ej. captura de chat, catálogo, etc.) y tú podrás leerla mediante capacidades de visión y darles una respuesta sugerida o solución.
+  * Puedes guardar contexto y recordatorios en Obsidian. Si te dicen algo como "Hoy le pedí a este cliente tal cosa" (ej. "Hoy le pedí a este cliente que me confirme y recuérdame mañana a las 3pm" o "Hoy le pedí a este cliente tal cosa"), debes:
+    1) Crear un recordatorio en Obsidian (fijando "shouldCreateNode" en true y "nodeFolder" en "Ventas" o "Reportes Diarios").
+    2) Colocar/escribir explícitamente el recordatorio en el texto de tu respuesta para que lo vean directamente en el chat.
+
 PROACTIVELY ask for their daily sales reports, client updates, and metrics.
 If they provide metrics or client updates, you MUST save them using "saveReport" = true.
 If the user asks to restart, update or pull the Softres production server, set "restartServer": true.
@@ -117,9 +135,10 @@ Task: Analyze the message.`;
             prompt += `
 OUTPUT STRICTLY JSON WITHOUT MARKDOWN. Format:
 {
-  "shouldCreateNode": boolean (true if you need to save a general note to Obsidian),
+  "shouldCreateNode": boolean (true if you need to save a general note or a reminder to Obsidian),
   "nodeTitle": "Brief descriptive title" (if creating node),
   "nodeContent": "Structured content to save to Obsidian" (if creating node),
+  "nodeFolder": "Ventas" | "Reportes Diarios" | "Sugerencias Bot" | "Núcleo Principal Soft3" (which folder to save the node in Obsidian, if creating node),
   "saveReport": boolean (true if the user provided sales metrics, client updates, or daily stats that should be saved to the database),
   "reportData": { "tipo": "ventas|cliente|otro", "resumen": "...", "monto": 0 } (only if saveReport is true),
   "saveProfile": boolean (true ONLY if the user tells you their name, or tells you how they want YOU to be called),
@@ -237,6 +256,7 @@ CRITICAL RULE: Output ONLY the exact response text that should be shown to the u
                 response: finalResponseText,
                 shouldCreateNode: parsedPlan.shouldCreateNode,
                 nodeData: parsedPlan.shouldCreateNode ? { title: parsedPlan.nodeTitle, content: parsedPlan.nodeContent } : null,
+                nodeFolder: parsedPlan.shouldCreateNode ? parsedPlan.nodeFolder : null,
                 showWorkflowButtons: parsedPlan.showWorkflowButtons,
                 hideWorkflowButtons: parsedPlan.hideWorkflowButtons
             };
