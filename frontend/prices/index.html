@@ -417,6 +417,14 @@
             background-color: rgba(0, 255, 204, 0.03);
         }
 
+        tr.highlighted-row td {
+            background-color: rgba(0, 255, 204, 0.12) !important;
+            border-top: 1px solid rgba(0, 255, 204, 0.5) !important;
+            border-bottom: 1px solid rgba(0, 255, 204, 0.5) !important;
+            box-shadow: inset 0 0 15px rgba(0, 255, 204, 0.2);
+            font-weight: 500;
+        }
+
         .product-info-cell {
             display: flex;
             align-items: center;
@@ -1047,6 +1055,135 @@
             }
         }
 
+        // Dynamic search helper functions
+        function searchProductsLocal(messageText) {
+            const text = messageText.toLowerCase().trim();
+            
+            // 1. Check for Price Range patterns
+            let minPrice = 0;
+            let maxPrice = Infinity;
+            let hasPriceFilter = false;
+
+            const rangeRegex1 = /(?:entre|de)\s+(\d+(?:\.\d+)?)\s+(?:y|a)\s+(\d+(?:\.\d+)?)/i;
+            const rangeRegex2 = /(?:menos de|menor a|bajo|hasta)\s+(\d+(?:\.\d+)?)/i;
+            const rangeRegex3 = /(?:mas de|mayor a|desde|sobre)\s+(\d+(?:\.\d+)?)/i;
+
+            let match;
+            if ((match = text.match(rangeRegex1))) {
+                minPrice = parseFloat(match[1]);
+                maxPrice = parseFloat(match[2]);
+                hasPriceFilter = true;
+                if (minPrice > maxPrice) {
+                    const temp = minPrice;
+                    minPrice = maxPrice;
+                    maxPrice = temp;
+                }
+            } else if ((match = text.match(rangeRegex2))) {
+                maxPrice = parseFloat(match[1]);
+                hasPriceFilter = true;
+            } else if ((match = text.match(rangeRegex3))) {
+                minPrice = parseFloat(match[1]);
+                hasPriceFilter = true;
+            }
+
+            // 2. Extract keywords for product matching (filtering out common filler words and typos)
+            let queryText = text
+                .replace(/(?:entre|de)\s+\d+(?:\.\d+)?\s+(?:y|a)\s+\d+(?:\.\d+)?/gi, '') 
+                .replace(/(?:menos de|menor a|bajo|hasta|mas de|mayor a|desde|sobre)\s+\d+(?:\.\d+)?/gi, '')
+                .replace(/precio|de|cuanto|cuesta|stock|valor|los|las|el|la|dame|tiene|me|das|hola|buenas|tardes|tienes|tines|teneis|tinees|hay|busca|buscame|ver|buscar|tine/g, ' ')
+                .trim();
+
+            const keywords = queryText.split(/\s+/).map(w => w.trim()).filter(w => w.length >= 2);
+
+            // If no keywords and no price range, this isn't a product inquiry
+            if (keywords.length === 0 && !hasPriceFilter) {
+                return null;
+            }
+
+            // 3. Typo-tolerant matching logic
+            function isFuzzyMatch(keyword, targetField) {
+                if (!targetField) return false;
+                const normalizedTarget = targetField.toLowerCase();
+                if (normalizedTarget.includes(keyword)) return true;
+
+                // Split words in product name
+                const words = normalizedTarget.split(/[\s\-,\/()]+/);
+                return words.some(w => {
+                    if (w.includes(keyword) || keyword.includes(w)) return true;
+                    if (Math.abs(w.length - keyword.length) > 3) return false;
+
+                    // Simple character intersection order ratio
+                    let commonChars = 0;
+                    let lastIdx = -1;
+                    for (let i = 0; i < keyword.length; i++) {
+                        const idx = w.indexOf(keyword[i], lastIdx + 1);
+                        if (idx > -1) {
+                            commonChars++;
+                            lastIdx = idx;
+                        }
+                    }
+                    const ratio = commonChars / Math.max(keyword.length, w.length);
+                    return ratio >= 0.70; // 70% threshold
+                });
+            }
+
+            let matches = allProducts.filter(p => {
+                const matchPrice = p.price >= minPrice && p.price <= maxPrice;
+                if (!matchPrice) return false;
+
+                if (keywords.length > 0) {
+                    return keywords.every(kw => 
+                        isFuzzyMatch(kw, p.name) || 
+                        isFuzzyMatch(kw, p.category) || 
+                        p.code.toLowerCase().includes(kw)
+                    );
+                }
+                return true;
+            });
+
+            return {
+                products: matches,
+                keywords: keywords,
+                hasPriceFilter: hasPriceFilter,
+                minPrice: minPrice,
+                maxPrice: maxPrice
+            };
+        }
+
+        // Global functions to filter and highlight product row
+        window.highlightAndFilterProduct = function(id) {
+            const input = document.getElementById('search-input');
+            const product = allProducts.find(p => p.id === id);
+            if (!product) return;
+
+            // Clear active category filter, set text input to matching SKU
+            currentCategory = 'Todas';
+            input.value = product.code !== 'N/A' ? product.code : product.name;
+            
+            // Re-render categories & table
+            renderCategories();
+            renderTable();
+
+            // Find row and highlight it
+            setTimeout(() => {
+                const rows = document.querySelectorAll('#prices-body tr');
+                rows.forEach(row => {
+                    row.classList.remove('highlighted-row');
+                    // Check if it matches this product ID
+                    const pCodeElement = row.querySelector('.product-code');
+                    const pNameElement = row.querySelector('.product-name');
+                    if (pCodeElement && pNameElement) {
+                        const pCode = pCodeElement.innerText.replace('CÓD: ', '').trim();
+                        const pName = pNameElement.innerText.trim();
+                        if (pCode === product.code || pName === product.name) {
+                            row.classList.add('highlighted-row');
+                            row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }
+                });
+            }, 150);
+        };
+
         async function sendChatMessage() {
             const input = document.getElementById('chat-input');
             const messageText = input.value.trim();
@@ -1057,54 +1194,53 @@
             // Render user message
             renderMessage(messageText, 'user');
 
-            // 1. Local Intelligent Lookup for Product/Price Queries
-            const lowerMessage = messageText.toLowerCase();
-            let matchedProducts = [];
+            // 1. Check local database with fuzzy typo-tolerant + price range filters
+            const localResult = searchProductsLocal(messageText);
 
-            // If user asks for price or stock of a product name
-            if (lowerMessage.includes('precio') || lowerMessage.includes('cuanto') || lowerMessage.includes('cuesta') || lowerMessage.includes('stock') || lowerMessage.includes('valor')) {
-                // try to extract product keywords (exclude common words)
-                const keywords = lowerMessage
-                    .replace(/precio|de|cuanto|cuesta|stock|valor|los|las|el|la|dame|tiene|me|das/g, '')
-                    .trim()
-                    .split(/\s+/)
-                    .filter(w => w.length > 2);
-
-                if (keywords.length > 0) {
-                    matchedProducts = allProducts.filter(p => {
-                        return keywords.every(kw => p.name.toLowerCase().includes(kw));
-                    });
+            if (localResult && localResult.products.length > 0) {
+                let rangeText = '';
+                if (localResult.hasPriceFilter) {
+                    rangeText = ` con precio entre $${localResult.minPrice} y $${localResult.maxPrice === Infinity ? 'más' : localResult.maxPrice}`;
                 }
-            }
 
-            // If we found local matches, answer instantly!
-            if (matchedProducts.length > 0) {
-                let reply = `He encontrado ${matchedProducts.length} coincidencia(s) en la lista de precios:\n<ul>`;
-                matchedProducts.slice(0, 4).forEach(p => {
-                    let stockInfo = p.stock !== null ? `Stock: ${p.stock}` : 'Stock: N/A';
-                    reply += `<li style="margin-top: 5px;"><strong>${p.name}</strong> - <span style="color:#00ffcc">$${p.price.toFixed(2)}</span> (${stockInfo}, Cód: ${p.code})</li>`;
-                });
-                reply += `</ul>`;
-                if (matchedProducts.length > 4) {
-                    reply += `<div style="margin-top: 5px; font-size: 0.8rem; color: #888;">(Mostrando los primeros 4 resultados. Escribe más letras para filtrar mejor).</div>`;
-                }
+                let reply = `He encontrado ${localResult.products.length} coincidencia(s) en la lista de precios${rangeText}:\n<ul style="margin: 8px 0 0 15px; padding: 0; list-style-type: square;">`;
                 
-                // Filter the table view as well to help the user visually!
-                const searchInput = document.getElementById('search-input');
-                searchInput.value = keywords.join(' ');
-                renderTable();
+                localResult.products.slice(0, 5).forEach(p => {
+                    let stockInfo = p.stock !== null ? `Stock: ${p.stock}` : 'Stock: N/A';
+                    reply += `<li style="margin-top: 6px; font-size: 0.85rem;">
+                        <strong>${p.name}</strong> - <span style="color:#00ffcc; font-weight:700;">$${p.price.toFixed(2)}</span> (${stockInfo}) 
+                        <a href="javascript:void(0)" onclick="highlightAndFilterProduct('${p.id}')" style="color:#ff00ff; text-decoration:underline; font-weight:bold; margin-left:5px;">[Ver Producto]</a>
+                    </li>`;
+                });
+                
+                reply += `</ul>`;
+                
+                if (localResult.products.length > 5) {
+                    reply += `<div style="margin-top: 8px; font-size: 0.78rem; color: var(--text-muted);">(Mostrando los primeros 5 resultados de ${localResult.products.length}. Sé más específico para filtrar mejor).</div>`;
+                }
+
+                // Apply the search input locally to filter the table view immediately!
+                if (localResult.keywords.length > 0) {
+                    document.getElementById('search-input').value = localResult.keywords.join(' ');
+                    renderTable();
+                }
 
                 setTimeout(() => {
                     renderMessage(reply, 'bot');
-                }, 500);
+                }, 400);
+                return;
+            } else if (localResult && localResult.products.length === 0) {
+                // If they explicitly did a product query but no results matched
+                setTimeout(() => {
+                    renderMessage(`No encontré ningún producto que coincida con tu búsqueda ni filtros de precio en la base de datos local. ¿Deseas intentar con otros términos?`, 'bot');
+                }, 400);
                 return;
             }
 
-            // 2. Call backend neural brain (Icaro) if not local match
+            // 2. Call backend neural brain (Icaro) if not local product match
             const userName = localStorage.getItem('atomic_user') || 'Asesor';
             const userRole = localStorage.getItem('atomic_role') || 'vendedor';
 
-            // Show typing indicator
             const typingId = renderMessage('<div class="spinner" style="width: 15px; height: 15px; border-width: 2px;"></div> Procesando enlace...', 'bot');
 
             try {
@@ -1121,7 +1257,6 @@
 
                 const data = await response.json();
                 
-                // Remove typing indicator
                 document.getElementById(typingId).remove();
 
                 if (data.instructionsForExecutor) {
