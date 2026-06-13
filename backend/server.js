@@ -29,7 +29,7 @@ app.get('/soft3_v2.html', (req, res) => {
 const PORT = process.env.PORT || 3050;
 
 // API KEY fallback (can be overridden by .env)
-const GEMINI_KEY = process.env.GEMINI_API_KEY || 'AIzaSyDA2lEm3eGo9PyBlvovFJ_SDMa16LP39Uw';
+const GEMINI_KEY = process.env.GEMINI_API_KEY || '';
 
 const obsidian = new ObsidianManager(process.env.OBSIDIAN_VAULT_PATH);
 const ai = new AIRouter(GEMINI_KEY);
