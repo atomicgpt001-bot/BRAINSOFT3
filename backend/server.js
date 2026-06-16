@@ -63,22 +63,27 @@ if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_BOT_TOKEN !== 'your_t
     console.log('[TELEGRAM] Token not configured. Telegram sync disabled.');
 }
 
-const sql = require('postgres')('postgresql://postgres.kkvujjyohspdynxltwqo:Jp2024013gg002@aws-1-us-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true');
-
+const mysql = require('mysql2/promise');
+const pool = mysql.createPool({
+    uri: process.env.MYSQL_URL || 'mysql://root:@127.0.0.1:3306/softres',
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+});
 app.post('/api/chat', async (req, res) => {
     const { message, topic, vendedor_id, persona, role } = req.body;
     console.log(`[CHAT] Recibido: ${message} (Tema: ${topic}, Vendedor: ${vendedor_id}, Persona: ${persona}, Rol: ${role})`);
     
     // Log user message
     if (vendedor_id) {
-        await sql`INSERT INTO conversaciones (vendedor_id, emisor, mensaje) VALUES (${vendedor_id}, 'user', ${message})`.catch(e => console.error(e));
+        await pool.query('INSERT INTO conversaciones (vendedor_id, emisor, mensaje) VALUES (?, ?, ?)', [vendedor_id, 'user', message]).catch(e => console.error(e));
     }
     
-    const result = await ai.processMessage(message, topic, [], obsidian, vendedor_id, sql, persona, role);
+    const result = await ai.processMessage(message, topic, [], obsidian, vendedor_id, pool, persona, role);
     
     // Log AI response
     if (vendedor_id && result.response) {
-        await sql`INSERT INTO conversaciones (vendedor_id, emisor, mensaje) VALUES (${vendedor_id}, 'ai', ${result.response})`.catch(e => console.error(e));
+        await pool.query('INSERT INTO conversaciones (vendedor_id, emisor, mensaje) VALUES (?, ?, ?)', [vendedor_id, 'ai', result.response]).catch(e => console.error(e));
     }
     
     if (result.shouldCreateNode && result.nodeData) {
@@ -97,14 +102,14 @@ app.post('/api/chat-upload', upload.array('files'), async (req, res) => {
     
     // Log user message
     if (vendedor_id) {
-        await sql`INSERT INTO conversaciones (vendedor_id, emisor, mensaje) VALUES (${vendedor_id}, 'user', ${message + ' [Archivos Adjuntos]'})`.catch(e => console.error(e));
+        await pool.query('INSERT INTO conversaciones (vendedor_id, emisor, mensaje) VALUES (?, ?, ?)', [vendedor_id, 'user', message + ' [Archivos Adjuntos]']).catch(e => console.error(e));
     }
     
-    const result = await ai.processMessage(message, topic, files, obsidian, vendedor_id, sql, persona, role);
+    const result = await ai.processMessage(message, topic, files, obsidian, vendedor_id, pool, persona, role);
     
     // Log AI response
     if (vendedor_id && result.response) {
-        await sql`INSERT INTO conversaciones (vendedor_id, emisor, mensaje) VALUES (${vendedor_id}, 'ai', ${result.response})`.catch(e => console.error(e));
+        await pool.query('INSERT INTO conversaciones (vendedor_id, emisor, mensaje) VALUES (?, ?, ?)', [vendedor_id, 'ai', result.response]).catch(e => console.error(e));
     }
     
     if (result.shouldCreateNode && result.nodeData) {
@@ -220,7 +225,7 @@ app.get('/api/graph', (req, res) => {
 
 app.get('/api/admin/conversaciones', async (req, res) => {
     try {
-        const rows = await sql`SELECT * FROM conversaciones ORDER BY fecha DESC LIMIT 100`;
+        const [rows] = await pool.query('SELECT * FROM conversaciones ORDER BY fecha DESC LIMIT 100');
         res.json(rows);
     } catch (e) {
         res.status(500).json({ error: e.message });
@@ -229,7 +234,7 @@ app.get('/api/admin/conversaciones', async (req, res) => {
 
 app.get('/api/admin/reportes', async (req, res) => {
     try {
-        const rows = await sql`SELECT * FROM reportes_ventas ORDER BY fecha DESC LIMIT 50`;
+        const [rows] = await pool.query('SELECT * FROM reportes_ventas ORDER BY fecha DESC LIMIT 50');
         res.json(rows);
     } catch (e) {
         res.status(500).json({ error: e.message });
@@ -263,30 +268,22 @@ app.listen(PORT, () => {
 // --- PRICE LIST ENDPOINTS ---
 app.get('/api/prices', async (req, res) => {
     try {
-        const result = await sql`
-          SELECT p.*, c.name as category_name 
-          FROM "Product" p 
-          LEFT JOIN "Category" c ON p."categoryId" = c.id 
-          WHERE p."isActive" = true
-        `;
+        // Adaptado para consultar la base de datos MySQL de Soft 3.
+        // Si las tablas no existen (en caso de que sea una DB vacía en Railway), devolverá error.
+        const [result] = await pool.query(`
+          SELECT a.id, a.nombre as name, a.codigo as sku, a.precio1 as price, 'Sin Categoría' as category_name, '' as description, a.stock
+          FROM articulos a 
+          WHERE a.estado = 'A' LIMIT 50
+        `).catch(e => [[], null]);
         
         const formattedProducts = result.map(p => {
-          let imgUrl = 'https://via.placeholder.com/400';
-          if (p.images) {
-            try {
-                const arr = JSON.parse(p.images);
-                if (arr && arr.length > 0) imgUrl = arr[0];
-            } catch(e) {
-                imgUrl = p.images.split(',')[0].replace(/\[|\]|"/g, '');
-            }
-          }
           return {
             id: p.id,
             name: p.name,
             code: p.sku || 'N/A',
             price: Number(p.price) || 0,
-            image: imgUrl,
-            category: p.category_name || 'Sin Categoría',
+            image: 'https://via.placeholder.com/400',
+            category: p.category_name,
             description: p.description,
             stock: p.stock
           };
@@ -294,7 +291,7 @@ app.get('/api/prices', async (req, res) => {
         
         res.json({ success: true, count: formattedProducts.length, products: formattedProducts });
     } catch (error) {
-        console.error('Supabase error:', error);
+        console.error('MySQL error:', error);
         res.status(500).json({ success: false, error: 'Database error' });
     }
 });
