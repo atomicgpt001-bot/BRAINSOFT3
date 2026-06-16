@@ -70,6 +70,33 @@ const pool = mysql.createPool({
     connectionLimit: 10,
     queueLimit: 0
 });
+
+// Auto-crear tablas al iniciar el servidor (útil para Railway)
+async function inicializarBaseDatos() {
+    try {
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS conversaciones (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                vendedor_id VARCHAR(255),
+                emisor VARCHAR(50),
+                mensaje TEXT,
+                fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS reportes_ventas (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                vendedor_id VARCHAR(255),
+                datos JSON,
+                fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+        console.log('[MYSQL] Tablas validadas correctamente.');
+    } catch (e) {
+        console.error('[MYSQL] Error validando tablas:', e.message);
+    }
+}
+inicializarBaseDatos();
 app.post('/api/chat', async (req, res) => {
     const { message, topic, vendedor_id, persona, role } = req.body;
     console.log(`[CHAT] Recibido: ${message} (Tema: ${topic}, Vendedor: ${vendedor_id}, Persona: ${persona}, Rol: ${role})`);
