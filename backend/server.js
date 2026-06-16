@@ -98,14 +98,14 @@ app.post('/api/chat', async (req, res) => {
     
     // Log user message
     if (vendedor_id) {
-        await pool.query('INSERT INTO conversaciones (vendedor_id, emisor, mensaje) VALUES (?, ?, ?)', [vendedor_id, 'user', message]).catch(e => console.error(e));
+        pool.query('INSERT INTO conversaciones (vendedor_id, emisor, mensaje) VALUES (?, ?, ?)', [vendedor_id, 'user', message]).catch(e => console.error(e));
     }
     
     const result = await ai.processMessage(message, topic, [], obsidian, vendedor_id, pool, persona, role);
     
     // Log AI response
     if (vendedor_id && result.response) {
-        await pool.query('INSERT INTO conversaciones (vendedor_id, emisor, mensaje) VALUES (?, ?, ?)', [vendedor_id, 'ai', result.response]).catch(e => console.error(e));
+        pool.query('INSERT INTO conversaciones (vendedor_id, emisor, mensaje) VALUES (?, ?, ?)', [vendedor_id, 'ai', result.response]).catch(e => console.error(e));
     }
     
     if (result.shouldCreateNode && result.nodeData) {
@@ -124,14 +124,14 @@ app.post('/api/chat-upload', upload.array('files'), async (req, res) => {
     
     // Log user message
     if (vendedor_id) {
-        await pool.query('INSERT INTO conversaciones (vendedor_id, emisor, mensaje) VALUES (?, ?, ?)', [vendedor_id, 'user', message + ' [Archivos Adjuntos]']).catch(e => console.error(e));
+        pool.query('INSERT INTO conversaciones (vendedor_id, emisor, mensaje) VALUES (?, ?, ?)', [vendedor_id, 'user', message + ' [Archivos Adjuntos]']).catch(e => console.error(e));
     }
     
     const result = await ai.processMessage(message, topic, files, obsidian, vendedor_id, pool, persona, role);
     
     // Log AI response
     if (vendedor_id && result.response) {
-        await pool.query('INSERT INTO conversaciones (vendedor_id, emisor, mensaje) VALUES (?, ?, ?)', [vendedor_id, 'ai', result.response]).catch(e => console.error(e));
+        pool.query('INSERT INTO conversaciones (vendedor_id, emisor, mensaje) VALUES (?, ?, ?)', [vendedor_id, 'ai', result.response]).catch(e => console.error(e));
     }
     
     if (result.shouldCreateNode && result.nodeData) {
