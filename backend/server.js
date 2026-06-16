@@ -64,12 +64,7 @@ if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_BOT_TOKEN !== 'your_t
 }
 
 const mysql = require('mysql2/promise');
-const pool = mysql.createPool({
-    uri: process.env.MYSQL_URL || 'mysql://root:@127.0.0.1:3306/softres',
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
-});
+const pool = mysql.createPool(process.env.MYSQL_URL || 'mysql://root:@127.0.0.1:3306/softres');
 
 // Auto-crear tablas al iniciar el servidor (útil para Railway)
 async function inicializarBaseDatos() {
