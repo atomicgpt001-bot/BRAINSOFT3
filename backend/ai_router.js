@@ -1,4 +1,4 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const OpenAI = require('openai');
 const fs = require('fs');
 const path = require('path');
 
@@ -19,26 +19,24 @@ async function executeWithRetry(apiCall, maxRetries = 6) {
 }
 
 function fileToGenerativePart(filePath, mimeType) {
+    const base64 = Buffer.from(fs.readFileSync(filePath)).toString("base64");
     return {
-        inlineData: {
-            data: Buffer.from(fs.readFileSync(filePath)).toString("base64"),
-            mimeType
-        },
+        type: "image_url",
+        image_url: { url: `data:${mimeType};base64,${base64}` }
     };
 }
 
 class AIRouter {
     constructor(apiKey) {
-        this.genAI = new GoogleGenerativeAI(apiKey);
+        this.apiKey = apiKey;
+        this.openai = new OpenAI({ apiKey });
     }
 
     async processMessage(message, currentTopic, files = [], obsidianManager, vendedor_id = 'Unknown', sql = null, persona = 'icaro') {
         try {
-            if (!this.genAI.apiKey || this.genAI.apiKey === 'your_gemini_api_key_here') {
-                return { response: "Error: API KEY de Gemini no configurada.", shouldCreateNode: false, nodeData: null };
+            if (!this.apiKey || this.apiKey === 'your_openai_api_key_here') {
+                return { response: "Error: API KEY de OpenAI no configurada.", shouldCreateNode: false, nodeData: null };
             }
-
-            const model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
             
             // Procesar archivos si existen
             const imageParts = [];
@@ -95,14 +93,18 @@ OUTPUT STRICTLY JSON WITHOUT MARKDOWN. Format:
   "hideWorkflowButtons": boolean (true if the user wants to end)
 }`;
 
-            let result;
+            let contentArray = [{ type: "text", text: prompt }];
             if (imageParts.length > 0) {
-                result = await executeWithRetry(() => model.generateContent([prompt, ...imageParts]));
-            } else {
-                result = await executeWithRetry(() => model.generateContent(prompt));
+                contentArray = contentArray.concat(imageParts);
             }
             
-            let responseText = result.response.text().trim();
+            let result = await executeWithRetry(() => this.openai.chat.completions.create({
+                model: "gpt-4o-mini",
+                messages: [{ role: "user", content: contentArray }],
+                response_format: { type: "json_object" }
+            }));
+            
+            let responseText = result.choices[0].message.content.trim();
             
             if (responseText.startsWith('\`\`\`json')) {
                 responseText = responseText.slice(7, -3);
@@ -169,9 +171,11 @@ Directive: ${parsedPlan.instructionsForExecutor}
 CRITICAL RULE: Output ONLY the exact response text that should be shown to the user. Speak directly to the user "${userProfile.userName}" in Spanish using a professional but futuristic corporate tone.`;
                 }
 
-                const executorModel = this.genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-                const localRes = await executeWithRetry(() => executorModel.generateContent(executorPrompt));
-                finalResponseText = localRes.response.text().trim();
+                const localRes = await executeWithRetry(() => this.openai.chat.completions.create({
+                    model: "gpt-4o-mini",
+                    messages: [{ role: "user", content: executorPrompt }]
+                }));
+                finalResponseText = localRes.choices[0].message.content.trim();
                 
                 if (finalResponseText.startsWith('\`\`\`')) {
                     finalResponseText = finalResponseText.replace(/^\`\`\`[\s\S]*?\n/, '').replace(/\`\`\`$/, '').trim();
@@ -203,7 +207,6 @@ CRITICAL RULE: Output ONLY the exact response text that should be shown to the u
 
     async summarizeNode(topic, fileName, content) {
         try {
-            const model = this.genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
             const prompt = `You are a Cyberpunk 2077 AI. Give a concise, 2-sentence summary in Spanish of this node from the user's brain.
 Topic: ${topic}
 Filename: ${fileName}
@@ -211,8 +214,11 @@ Content:
 ${content}
 Make it sound like you just scanned a data shard.`;
 
-            const result = await model.generateContent(prompt);
-            return result.response.text().trim();
+            const result = await this.openai.chat.completions.create({
+                model: "gpt-4o-mini",
+                messages: [{ role: "user", content: prompt }]
+            });
+            return result.choices[0].message.content.trim();
         } catch (e) {
             console.error("[SUMMARIZE] Error:", e);
             return "Error al desencriptar el fragmento de memoria.";

@@ -29,12 +29,12 @@ app.get('/soft3_v2.html', (req, res) => {
 const PORT = process.env.PORT || 3050;
 
 // API KEY fallback (can be overridden by .env)
-const GEMINI_KEY = process.env.GEMINI_API_KEY || 'AIzaSyCqAqzq4zVCJbaSozYZ7gw8bS00Z7BOHAA';
+const OPENAI_KEY = process.env.OPENAI_API_KEY || 'your_openai_api_key_here';
 
 const obsidian = new ObsidianManager(process.env.OBSIDIAN_VAULT_PATH);
-const ai = new AIRouter(GEMINI_KEY);
+const ai = new AIRouter(OPENAI_KEY);
 
-console.log(`[SERVER] GEMINI_API_KEY loaded: ${GEMINI_KEY ? GEMINI_KEY.substring(0,10) + '...' : 'NOT SET'}`);
+console.log(`[SERVER] OPENAI_API_KEY loaded: ${OPENAI_KEY ? OPENAI_KEY.substring(0,10) + '...' : 'NOT SET'}`);
 
 // Setup Multer for file uploads
 const upload = multer({ dest: path.join(__dirname, 'temp_uploads/') });
@@ -71,14 +71,14 @@ app.post('/api/chat', async (req, res) => {
     
     // Log user message
     if (vendedor_id) {
-        await sql`INSERT INTO conversaciones (vendedor_id, emisor, mensaje) VALUES (${vendedor_id}, 'user', ${message})`.catch(e => console.error(e));
+        sql`INSERT INTO conversaciones (vendedor_id, emisor, mensaje) VALUES (${vendedor_id}, 'user', ${message})`.catch(e => console.error(e));
     }
     
     const result = await ai.processMessage(message, topic, [], obsidian, vendedor_id, sql, persona);
     
     // Log AI response
     if (vendedor_id && result.response) {
-        await sql`INSERT INTO conversaciones (vendedor_id, emisor, mensaje) VALUES (${vendedor_id}, 'ai', ${result.response})`.catch(e => console.error(e));
+        sql`INSERT INTO conversaciones (vendedor_id, emisor, mensaje) VALUES (${vendedor_id}, 'ai', ${result.response})`.catch(e => console.error(e));
     }
     
     if (result.shouldCreateNode && result.nodeData) {
@@ -96,14 +96,14 @@ app.post('/api/chat-upload', upload.array('files'), async (req, res) => {
     
     // Log user message
     if (vendedor_id) {
-        await sql`INSERT INTO conversaciones (vendedor_id, emisor, mensaje) VALUES (${vendedor_id}, 'user', ${message + ' [Archivos Adjuntos]'})`.catch(e => console.error(e));
+        sql`INSERT INTO conversaciones (vendedor_id, emisor, mensaje) VALUES (${vendedor_id}, 'user', ${message + ' [Archivos Adjuntos]'})`.catch(e => console.error(e));
     }
     
     const result = await ai.processMessage(message, topic, files, obsidian, vendedor_id, sql, persona);
     
     // Log AI response
     if (vendedor_id && result.response) {
-        await sql`INSERT INTO conversaciones (vendedor_id, emisor, mensaje) VALUES (${vendedor_id}, 'ai', ${result.response})`.catch(e => console.error(e));
+        sql`INSERT INTO conversaciones (vendedor_id, emisor, mensaje) VALUES (${vendedor_id}, 'ai', ${result.response})`.catch(e => console.error(e));
     }
     
     if (result.shouldCreateNode && result.nodeData) {
