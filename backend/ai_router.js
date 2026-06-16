@@ -48,12 +48,13 @@ function fileToGenerativePart(filePath, mimeType) {
 
 class AIRouter {
     constructor(apiKey) {
+        this.apiKey = apiKey;
         this.genAI = new GoogleGenerativeAI(apiKey);
     }
 
     async processMessage(message, currentTopic, files = [], obsidianManager, vendedor_id = 'Unknown', sql = null, persona = 'icaro', role = 'vendedor') {
         try {
-            if (!this.genAI.apiKey || this.genAI.apiKey === 'your_gemini_api_key_here') {
+            if (!this.apiKey || this.apiKey === 'your_gemini_api_key_here') {
                 return { response: "Error: API KEY de Gemini no configurada.", shouldCreateNode: false, nodeData: null };
             }
 
