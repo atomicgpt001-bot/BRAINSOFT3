@@ -1,195 +1,552 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Obsidian Cyber Brain</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+    <title>Cerebro Soft 3 — Panel de Control Premium</title>
+    <!-- Google Fonts: Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- 3D Force Graph Library -->
     <script src="https://unpkg.com/3d-force-graph"></script>
-    <style>
-        .user-controls {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        .mode-toggle-container {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.8rem;
-            color: #00ffcc;
-        }
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 34px;
-            height: 20px;
-        }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #333;
-            transition: .4s;
-            border-radius: 20px;
-        }
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 14px;
-            width: 14px;
-            left: 3px;
-            bottom: 3px;
-            background-color: #ff00ff;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        input:checked + .slider {
-            background-color: #ff00ff;
-        }
-        input:checked + .slider:before {
-            transform: translateX(14px);
-            background-color: #000;
-        }
-    </style>
+    <!-- Core Style -->
+    <link rel="stylesheet" href="style_v2.css">
 </head>
 <body>
-    <div class="app-container" id="main-app" style="display: none;">
-        <!-- TOP DRAG BAR FOR ELECTRON -->
-        <div class="titlebar">
-            <span>OBSIDIAN // NEURAL CORTEX</span>
-            <button id="close-btn" class="sys-btn">X</button>
-        </div>
 
-        <div class="main-layout">
-            <!-- LEFT PANEL: TOPICS & MANAGEMENT -->
-            <div class="sidebar" id="left-panel">
-                <div class="panel-collapse-header" id="left-collapse-btn">
-                    <span class="panel-collapse-title">NEURAL HUB</span>
-                    <button class="collapse-icon">◀</button>
+    <div id="app-wrapper">
+        
+        <!-- SIDEBAR (Reference 1 style) -->
+        <aside id="sidebar">
+            <div class="sidebar-brand">
+                <span class="brand-logo">🧠</span>
+                <div class="brand-text">
+                    <h3>SOFTRES</h3>
+                    <p>SISTEMAS CORE</p>
+                </div>
+            </div>
+            
+            <ul class="sidebar-menu">
+                <li class="menu-item active" data-target="dashboard">
+                    <span class="menu-icon">🏠</span> Vista Global
+                </li>
+                <li class="menu-item" data-target="map">
+                    <span class="menu-icon">🌐</span> Mapa Neuronal 3D
+                </li>
+                <li class="menu-item" data-target="vault">
+                    <span class="menu-icon">📂</span> Bóveda Obsidian
+                </li>
+                <li class="menu-item" data-target="prices">
+                    <span class="menu-icon">💰</span> Lista de Precios
+                </li>
+                
+                <li class="menu-divider">Módulos del Sistema</li>
+                
+                <li class="menu-item" data-target="mod_administracion" data-module="Administración">
+                    <span class="menu-icon">📁</span> Administración
+                </li>
+                <li class="menu-item" data-target="mod_empleados" data-module="Empleados">
+                    <span class="menu-icon">👤</span> Empleados
+                </li>
+                <li class="menu-item" data-target="mod_inventario" data-module="Inventario">
+                    <span class="menu-icon">🛒</span> Inventario
+                </li>
+                <li class="menu-item" data-target="mod_proveedores" data-module="Proveedores">
+                    <span class="menu-icon">🚚</span> Proveedores
+                </li>
+                <li class="menu-item" data-target="mod_compras" data-module="Compras">
+                    <span class="menu-icon">💳</span> Compras
+                </li>
+                <li class="menu-item" data-target="mod_bodegas" data-module="Bodegas">
+                    <span class="menu-icon">🏢</span> Bodegas
+                </li>
+                <li class="menu-item" data-target="mod_ventas" data-module="Ventas">
+                    <span class="menu-icon">📈</span> Ventas
+                </li>
+                <li class="menu-item" data-target="mod_hoteleria" data-module="Hotelería">
+                    <span class="menu-icon">🛏️</span> Hotelería
+                </li>
+                <li class="menu-item" data-target="mod_clientes" data-module="Clientes">
+                    <span class="menu-icon">👥</span> Clientes
+                </li>
+                <li class="menu-item" data-target="mod_consultas" data-module="Consultas">
+                    <span class="menu-icon">🔍</span> Consultas
+                </li>
+                <li class="menu-item" data-target="mod_reportes" data-module="Reportes">
+                    <span class="menu-icon">📊</span> Reportes
+                </li>
+                <li class="menu-item" data-target="mod_contabilidad" data-module="Contabilidad">
+                    <span class="menu-icon">🧮</span> Contabilidad
+                </li>
+                <li class="menu-item" data-target="mod_bancos" data-module="Gestión de Bancos">
+                    <span class="menu-icon">🏛️</span> Gestión de Bancos
+                </li>
+                <li class="menu-item" data-target="mod_utilerias" data-module="Utilerías">
+                    <span class="menu-icon">🛠️</span> Utilerías
+                </li>
+                <li class="menu-item" data-target="mod_ayudas" data-module="Ayudas">
+                    <span class="menu-icon">💡</span> Ayudas
+                </li>
+            </ul>
+            
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="user-avatar" id="avatar-btn">AT</div>
+                    <div class="user-info">
+                        <h4 id="sidebar-username">ATOMIC</h4>
+                        <p>Vendedor Activo</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- CENTRAL CONTENT AREA -->
+        <main id="main-content">
+            
+            <!-- 1. VISTA GLOBAL (DASHBOARD) -->
+            <section id="page-dashboard" class="content-page active">
+                <div class="page-header">
+                    <div class="header-left">
+                        <h1>Vista Global del Sistema</h1>
+                        <p>Estado del núcleo Softres y sincronizaciones en tiempo real</p>
+                    </div>
+                    <div class="header-right">
+                        <div class="search-box">
+                            <input type="text" placeholder="Añadir panel a su tablero...">
+                            <span class="search-icon">🔍</span>
+                        </div>
+                    </div>
                 </div>
                 
-                <div class="panel-content">
-                <div class="panel-section">
-                    <button id="global-brain-btn" class="neon-btn" style="width: 100%; border-color: #fff; color: #fff; text-shadow: 0 0 5px #fff; margin-bottom: 15px;">
-                        [ CEREBRO GLOBAL ]
-                    </button>
-                    <button id="image-editor-btn" class="neon-btn" style="width: 100%; border-color: #ffaa00; color: #ffaa00; text-shadow: 0 0 5px #ffaa00; margin-bottom: 15px; display: none;">
-                        🖼️ EDITOR IMÁGENES
-                    </button>
-                    <button id="price-list-btn" class="neon-btn" style="width: 100%; border-color: #00ffcc; color: #00ffcc; text-shadow: 0 0 5px #00ffcc; margin-bottom: 15px;">
-                        💰 LISTADO DE PRECIOS
-                    </button>
-                </div>
-
-                <div id="dynamic-neuronas" style="display: flex; flex-direction: column; gap: 20px; overflow-y: auto; flex: 1;">
-                    <!-- Dynamic Neuronas and Ramas will be injected here -->
+                <!-- COLORFUL CARDS GRID (Reference 2 style) -->
+                <div class="modules-grid">
+                    <!-- Administración -->
+                    <div class="module-card card-orange" data-target="mod_administracion" data-module="Administración">
+                        <div class="card-accent">📁</div>
+                        <div class="card-body">
+                            <span class="card-category">PROCESOS</span>
+                            <h4 class="card-title">Administración</h4>
+                            <div class="card-row">
+                                <span class="card-badge bg-blue">14 Activos</span>
+                                <span class="card-badge bg-yellow">2 Alertas ⚠️</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Empleados -->
+                    <div class="module-card card-blue" data-target="mod_empleados" data-module="Empleados">
+                        <div class="card-accent">👤</div>
+                        <div class="card-body">
+                            <span class="card-category">PERSONAL</span>
+                            <h4 class="card-title">Empleados</h4>
+                            <div class="card-row">
+                                <span class="card-badge bg-blue">85 Fichas</span>
+                                <span class="card-badge bg-green">96% Pres.</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Inventario -->
+                    <div class="module-card card-teal" data-target="mod_inventario" data-module="Inventario">
+                        <div class="card-accent">🛒</div>
+                        <div class="card-body">
+                            <span class="card-category">STOCK</span>
+                            <h4 class="card-title">Inventario</h4>
+                            <div class="card-row">
+                                <span class="card-badge bg-blue">1,240 Refs</span>
+                                <span class="card-badge bg-red">12 Bajas ⚠️</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Proveedores -->
+                    <div class="module-card card-green" data-target="mod_proveedores" data-module="Proveedores">
+                        <div class="card-accent">🚚</div>
+                        <div class="card-body">
+                            <span class="card-category">CONTACTOS</span>
+                            <h4 class="card-title">Proveedores</h4>
+                            <div class="card-row">
+                                <span class="card-badge bg-blue">34 Activos</span>
+                                <span class="card-badge bg-green">5 Pendientes</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Compras -->
+                    <div class="module-card card-purple" data-target="mod_compras" data-module="Compras">
+                        <div class="card-accent">💳</div>
+                        <div class="card-body">
+                            <span class="card-category">EGRESOS</span>
+                            <h4 class="card-title">Compras</h4>
+                            <div class="card-row">
+                                <span class="card-badge bg-blue">18 Órdenes</span>
+                                <span class="card-badge bg-yellow">3 Aut. ⚠️</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Bodegas -->
+                    <div class="module-card card-indigo" data-target="mod_bodegas" data-module="Bodegas">
+                        <div class="card-accent">🏢</div>
+                        <div class="card-body">
+                            <span class="card-category">ALMACÉN</span>
+                            <h4 class="card-title">Bodegas</h4>
+                            <div class="card-row">
+                                <span class="card-badge bg-blue">4 Activas</span>
+                                <span class="card-badge bg-green">78% Ocup.</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Ventas -->
+                    <div class="module-card card-rose" data-target="mod_ventas" data-module="Ventas">
+                        <div class="card-accent">📈</div>
+                        <div class="card-body">
+                            <span class="card-category">INGRESOS</span>
+                            <h4 class="card-title">Ventas</h4>
+                            <div class="card-row">
+                                <span class="card-badge bg-green">+$12.4K Hoy</span>
+                                <span class="card-badge bg-blue">24 Ctzs</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Hotelería -->
+                    <div class="module-card card-cyan" data-target="mod_hoteleria" data-module="Hotelería">
+                        <div class="card-accent">🛏️</div>
+                        <div class="card-body">
+                            <span class="card-category">ESTADÍA</span>
+                            <h4 class="card-title">Hotelería</h4>
+                            <div class="card-row">
+                                <span class="card-badge bg-blue">42 Hab. Occ</span>
+                                <span class="card-badge bg-green">8 Pend.</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Clientes -->
+                    <div class="module-card card-emerald" data-target="mod_clientes" data-module="Clientes">
+                        <div class="card-accent">👥</div>
+                        <div class="card-body">
+                            <span class="card-category">CLIENTES</span>
+                            <h4 class="card-title">Clientes</h4>
+                            <div class="card-row">
+                                <span class="card-badge bg-blue">512 Regs</span>
+                                <span class="card-badge bg-green">+15 Mes</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Consultas -->
+                    <div class="module-card card-amber" data-target="mod_consultas" data-module="Consultas">
+                        <div class="card-accent">🔍</div>
+                        <div class="card-body">
+                            <span class="card-category">BÚSQUEDAS</span>
+                            <h4 class="card-title">Consultas</h4>
+                            <div class="card-row">
+                                <span class="card-badge bg-blue">320 Rqs</span>
+                                <span class="card-badge bg-yellow">1 Lenta ⚠️</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Reportes -->
+                    <div class="module-card card-violet" data-target="mod_reportes" data-module="Reportes">
+                        <div class="card-accent">📊</div>
+                        <div class="card-body">
+                            <span class="card-category">DATOS</span>
+                            <h4 class="card-title">Reportes</h4>
+                            <div class="card-row">
+                                <span class="card-badge bg-blue">8 Prog.</span>
+                                <span class="card-badge bg-green">14 Desc.</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Contabilidad -->
+                    <div class="module-card card-slate" data-target="mod_contabilidad" data-module="Contabilidad">
+                        <div class="card-accent">🧮</div>
+                        <div class="card-body">
+                            <span class="card-category">FINANZAS</span>
+                            <h4 class="card-title">Contabilidad</h4>
+                            <div class="card-row">
+                                <span class="card-badge bg-green">Cuadrado</span>
+                                <span class="card-badge bg-yellow">4 Conc. ⚠️</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Bancos -->
+                    <div class="module-card card-red" data-target="mod_bancos" data-module="Gestión de Bancos">
+                        <div class="card-accent">🏛️</div>
+                        <div class="card-body">
+                            <span class="card-category">TESORERÍA</span>
+                            <h4 class="card-title">Gestión de Bancos</h4>
+                            <div class="card-row">
+                                <span class="card-badge bg-blue">6/8 Cuentas</span>
+                                <span class="card-badge bg-green">Saldos OK</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Utilerías -->
+                    <div class="module-card card-gray" data-target="mod_utilerias" data-module="Utilerías">
+                        <div class="card-accent">🛠️</div>
+                        <div class="card-body">
+                            <span class="card-category">SOPORTE</span>
+                            <h4 class="card-title">Utilerías</h4>
+                            <div class="card-row">
+                                <span class="card-badge bg-green">Backup OK</span>
+                                <span class="card-badge bg-yellow">Caché ⚠️</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Ayudas -->
+                    <div class="module-card card-lime" data-target="mod_ayudas" data-module="Ayudas">
+                        <div class="card-accent">💡</div>
+                        <div class="card-body">
+                            <span class="card-category">DOCUMENTACIÓN</span>
+                            <h4 class="card-title">Ayudas</h4>
+                            <div class="card-row">
+                                <span class="card-badge bg-blue">142 FAQs</span>
+                                <span class="card-badge bg-green">0 Tickets</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
-                <div class="voice-controls" style="margin-top: 15px;">
-                    <div class="user-controls">
-            <div class="mode-toggle-container" id="admin-mode-container" style="display: none;">
-                <span id="mode-label">Cauteloso</span>
-                <label class="switch">
-                    <input type="checkbox" id="autonomous-toggle">
-                    <span class="slider"></span>
-                </label>
-            </div>
-            <button class="sys-btn" id="tts-toggle-btn"><span class="icon">🔊</span> TTS: ON</button>
-            <button class="sys-btn" id="settings-btn" title="Configuraciones"><span class="icon">⚙️</span></button>
-            <div class="user-badge" id="user-badge">User</div>
-        </div>
-                </div>
-                </div> <!-- End panel-content -->
-            </div>
-
-            <!-- CENTER PANEL: NEURAL GRAPH & PREVIEW -->
-            <div class="center-panel" style="position: relative;">
-                <div class="graph-container" id="graph-container">
-                    <!-- WebGL Graph will render here -->
-                </div>
-                <div id="file-preview-container" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #ffffff; z-index: 10;">
-                    <div style="background: #222; padding: 10px; display: flex; justify-content: space-between;">
-                        <span style="color: white; font-family: 'Orbitron';">File Preview</span>
-                        <button id="close-preview-btn" style="background: red; color: white; border: none; padding: 5px 10px; cursor: pointer;">X</button>
+                <!-- STATISTICAL CHARTS (Reference 3 style) -->
+                <div class="charts-section">
+                    <div class="chart-wrapper block-two-third">
+                        <h3>Ventas vs Compras Mensuales (2026)</h3>
+                        <div class="chart-container">
+                            <canvas id="revenueBarChart"></canvas>
+                        </div>
                     </div>
-                    <iframe id="file-preview-frame" style="width: 100%; height: calc(100% - 40px); border: none;"></iframe>
-                </div>
-            </div>
-
-            <!-- RIGHT PANEL: CHAT INTERFACE -->
-            <div class="chat-panel" id="right-panel">
-                <div class="panel-collapse-header" id="right-collapse-btn">
-                    <button class="collapse-icon">▶</button>
-                    <span class="panel-collapse-title">TERMINAL UPLINK</span>
-                </div>
-                <div class="panel-content" style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
-                    <div class="chat-header" style="border-bottom: none; padding-bottom: 0;">
-                    <span id="current-topic-badge" style="color: #00ffcc; text-shadow: 0 0 5px #00ffcc;">[ Atomic ERP ]</span>
-                    <div style="margin-top: 10px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                        <span class="sys-btn" style="color: #ffaa00; border: 1px solid #ffaa00; padding: 2px 5px; font-size: 10px;">⚡ HYBRID UPLINK: GEMINI + OPENCLAE</span>
-                        <select id="advisor-select" style="background: #000; color: #00ffcc; border: 1px solid #00ffcc; padding: 2px 5px; font-size: 10px; font-family: 'Orbitron';">
-                            <option value="Asesor Humano 1">Asesor Humano 1</option>
-                            <option value="Asesor Humano 2">Asesor Humano 2</option>
-                            <option value="Soporte Técnico">Soporte Técnico</option>
-                        </select>
-                        <button id="assign-node-btn" class="sys-btn" style="color: #00ffcc; border-color: #00ffcc; font-size: 10px;">ASIGNAR NODO</button>
+                    <div class="chart-wrapper block-third">
+                        <h3>Distribución de Consultas</h3>
+                        <div class="chart-container">
+                            <canvas id="queriesDonutChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper block-third">
+                        <h3>Eficiencia del Sistema</h3>
+                        <div class="chart-container">
+                            <canvas id="efficiencyGaugeChart"></canvas>
+                        </div>
+                        <div class="gauge-value">94.8%</div>
                     </div>
                 </div>
-                <div class="chat-history" id="chat-history">
-                    <div class="msg system">System initialized. Awaiting input.</div>
+                
+                <!-- TABLES SECTION (Today's Commits & Errors) -->
+                <div class="dashboard-tables">
+                    <div class="table-container">
+                        <h3>📝 Commits Recientes del Día</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Cambio / Commit</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="commits-table-body">
+                                <!-- Loaded dynamically or fallback -->
+                                <tr>
+                                    <td><span class="badge-blue">c10</span></td>
+                                    <td>Crear soft3_v2.html sin caché e interfaz responsive</td>
+                                    <td><span class="badge-success">Pushed</span></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge-blue">c09</span></td>
+                                    <td>Eliminar modal de perfil viejo que provocaba congelamiento</td>
+                                    <td><span class="badge-success">Pushed</span></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge-blue">c08</span></td>
+                                    <td>Refactorizar endpoint de base de datos para mapeo Supabase</td>
+                                    <td><span class="badge-success">Pushed</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="table-container">
+                        <h3>🚨 Errores y Bugs Detectados</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Error Reportado</th>
+                                    <th>Acción Correctiva</th>
+                                </tr>
+                            </thead>
+                            <tbody id="errors-table-body">
+                                <tr>
+                                    <td><span class="badge-red">e01</span></td>
+                                    <td>No se pudo reiniciar por conflicto de tipos INT y VARCHAR en BD</td>
+                                    <td>Corregida foreign key en Supabase</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge-red">e02</span></td>
+                                    <td>ForceGraph3D empuja el chat fuera de la pantalla en layouts flex</td>
+                                    <td>Añadidos ResizeObserver y contenedores fijos</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge-red">e03</span></td>
+                                    <td>Falta de API KEY en entorno de producción (.env VM bloqueado)</td>
+                                    <td>Configurado fallback seguro en servidor web</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                <div class="workflow-actions" id="workflow-actions" style="display: none; padding: 10px; gap: 10px; background: rgba(0,255,204,0.1); border-top: 1px solid #00ffcc;">
-                    <button id="wf-voice-btn" class="sys-btn" style="color: #fff; border-color: #00ffcc;">🎤 RESPONDER CON VOZ</button>
-                    <button id="wf-finish-btn" class="sys-btn" style="color: #fff; border-color: #ff3333;">📤 FINALIZAR Y ENVIAR</button>
+            </section>
+            
+            <!-- 2. MAPA NEURONAL 3D -->
+            <section id="page-map" class="content-page">
+                <div class="page-header">
+                    <div class="header-left">
+                        <h1>Mapa Neuronal Soft 3</h1>
+                        <p>Interactúa con los módulos y el historial neuronal en 3D</p>
+                    </div>
+                    <div class="header-right">
+                        <span id="current-node-indicator">Sesión: General — Clic en un nodo para enfocar</span>
+                    </div>
                 </div>
-                <div class="chat-input-container">
-                    <input type="file" id="file-upload" style="display: none;" multiple accept="image/*,application/pdf" />
-                    <button id="attach-btn" class="sys-btn" style="min-width: 40px; padding: 0;">📎</button>
-                    <input type="text" id="chat-input" placeholder="Enter neural command... (Drag & Drop files here)" />
-                    <button id="mic-btn" class="sys-btn" style="min-width: 40px; padding: 0;">🎙️</button>
-                    <button id="send-btn" class="sys-btn">TRANSMIT</button>
+                <div id="graph-panel-content">
+                    <div id="graph-container"></div>
+                    <div id="graph-legend">
+                        <div class="legend-item"><div class="legend-dot" style="background:#58a6ff"></div>Núcleo</div>
+                        <div class="legend-item"><div class="legend-dot" style="background:#3fb950"></div>Softres Root</div>
+                        <div class="legend-item"><div class="legend-dot" style="background:#39d353"></div>Módulos Softres</div>
+                        <div class="legend-item"><div class="legend-dot" style="background:#bc8cff"></div>Módulos Soft 3</div>
+                        <div class="legend-item"><div class="legend-dot" style="background:#e3b341"></div>Commits</div>
+                        <div class="legend-item"><div class="legend-dot" style="background:#f78166"></div>Bugs</div>
+                        <div class="legend-item"><div class="legend-dot" style="background:#79c0ff"></div>Bóveda</div>
+                    </div>
                 </div>
-                <div style="font-size: 10px; color: #555; margin-top: 5px;" id="voice-status">Microphone Off</div>
-                <div id="attachment-preview" style="font-size: 10px; color: #00ffcc; margin-top: 5px;"></div>
-                </div> <!-- End panel-content -->
+            </section>
+            
+            <!-- 3. BÓVEDA OBSIDIAN -->
+            <section id="page-vault" class="content-page">
+                <div class="page-header">
+                    <div class="header-left">
+                        <h1>Bóveda Obsidian</h1>
+                        <p>Documentación y notas de memoria recopiladas por la IA</p>
+                    </div>
+                </div>
+                <div class="vault-explorer-container">
+                    <div class="vault-tree" id="vault-tree-list">
+                        <!-- Loaded dynamically -->
+                        <div class="vault-folder">📂 Cargando estructura de la bóveda...</div>
+                    </div>
+                    <div class="vault-preview">
+                        <div class="preview-header">
+                            <h3 id="preview-filename">Selecciona una nota</h3>
+                            <button id="summarize-node-btn" style="display:none;" class="btn-primary-small">Summarize AI</button>
+                        </div>
+                        <div class="preview-body" id="preview-content">
+                            <p class="empty-state">Selecciona una nota de la bóveda a la izquierda para ver su contenido sincronizado.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- 4. LISTA DE PRECIOS -->
+            <section id="page-prices" class="content-page">
+                <div class="page-header">
+                    <div class="header-left">
+                        <h1>Listado de Precios de Productos</h1>
+                        <p>Consulta interactiva de productos sincronizada con la base de datos Supabase</p>
+                    </div>
+                </div>
+                
+                <div class="prices-controls">
+                    <input type="text" id="prices-search-input" placeholder="🔍 Buscar por nombre o código de barras...">
+                    <div class="prices-categories" id="prices-categories-list">
+                        <!-- Categories injected dynamically -->
+                    </div>
+                </div>
+                
+                <div class="table-card">
+                    <div id="prices-loading" class="loading-spinner">Sincronizando tabla de precios...</div>
+                    <table id="prices-data-table" class="premium-table" style="display:none;">
+                        <thead>
+                            <tr>
+                                <th>Miniatura</th>
+                                <th>Código</th>
+                                <th>Nombre del Producto / Servicio</th>
+                                <th>Categoría</th>
+                                <th>Inventario</th>
+                                <th>Precio Neto</th>
+                            </tr>
+                        </thead>
+                        <tbody id="prices-table-body">
+                            <!-- Injected by script -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            
+            <!-- 5. DETALLE DE MÓDULO (Páginas dinámicas para Administración, Empleados, etc.) -->
+            <section id="page-module-details" class="content-page">
+                <div class="page-header">
+                    <div class="header-left">
+                        <h1 id="module-detail-title">Módulo del Sistema</h1>
+                        <p id="module-detail-subtitle">Operaciones del módulo</p>
+                    </div>
+                    <div class="header-right">
+                        <button class="btn-secondary" id="back-to-dashboard-btn">⬅ Volver a Vista Global</button>
+                    </div>
+                </div>
+                
+                <div class="module-dashboard-simulation">
+                    <div class="quick-stats-row" id="module-stats-row">
+                        <!-- Dynamic cards -->
+                    </div>
+                    
+                    <div class="module-table-wrapper">
+                        <h3>Registros del Módulo</h3>
+                        <div class="table-card">
+                            <table class="premium-table">
+                                <thead id="module-table-header">
+                                    <!-- Injected -->
+                                </thead>
+                                <tbody id="module-table-body">
+                                    <!-- Injected -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+        </main>
+        
+        <!-- RIGHT PANEL: CHAT IA (Cerebro Soft 3) -->
+        <section id="chat-panel">
+            <div class="chat-header-panel">
+                <div class="chat-header-info">
+                    <h3>💬 Cerebro Soft 3</h3>
+                    <div class="chat-header-status">
+                        <span class="status-dot"></span>
+                        <p>Enfoque: <span id="chat-topic">General</span></p>
+                    </div>
+                </div>
+                <button id="new-chat-btn">＋ Limpiar</button>
             </div>
-        </div>
+            
+            <!-- Chat history scroll area -->
+            <div id="chat-history">
+                <!-- Injected dynamically -->
+            </div>
+            
+            <!-- Chat Input Area -->
+            <div id="chat-input-area">
+                <form id="chat-form">
+                    <textarea id="message-input" placeholder="Pregunta sobre la base de datos, commits o módulos..." rows="1"></textarea>
+                    <button type="submit" id="send-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </section>
+        
     </div>
-    
-    <!-- AUTHENTICATION OVERLAY -->
-    <div id="auth-overlay" style="position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); z-index: 9999; display: flex; justify-content: center; align-items: center;">
-        <div style="background: #111; padding: 40px; border: 2px solid #00ffcc; border-radius: 10px; text-align: center; width: 350px;">
-            <h2 style="color: #00ffcc; font-family: 'Orbitron'; margin-bottom: 20px;">ACCESS TERMINAL</h2>
-            <input type="text" id="auth-username" placeholder="Usuario (ej. admin o tu nombre)" style="width: 100%; padding: 10px; margin-bottom: 10px; background: #222; color: #00ffcc; border: 1px solid #555;">
-            <input type="password" id="auth-password" placeholder="PIN (Solo Admin)" style="width: 100%; padding: 10px; margin-bottom: 20px; background: #222; color: #00ffcc; border: 1px solid #555;">
-            <button id="login-admin-btn" class="sys-btn" style="width: 100%; margin-bottom: 10px;">LOGIN COMO ADMIN</button>
-            <button id="login-sales-btn" class="sys-btn" style="width: 100%; border-color: #555; color: #aaa;">ENTRAR COMO VENDEDOR</button>
-            <div id="auth-error" style="color: red; margin-top: 10px; font-size: 12px;"></div>
-        </div>
-    </div>
-    
-    <!-- SETTINGS MODAL -->
-    <div id="settings-modal" style="display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); z-index: 9998; justify-content: center; align-items: center;">
-        <div style="background: #111; padding: 40px; border: 2px solid #ff00ff; border-radius: 10px; text-align: center; width: 400px;">
-            <h2 style="color: #ff00ff; font-family: 'Orbitron'; margin-bottom: 20px;">SYSTEM CONFIG</h2>
-            <p style="color: #aaa; font-size: 12px; margin-bottom: 10px;">Enlaza tu Bot de Telegram personal. Habla con BotFather, consigue el token y pégalo aquí.</p>
-            <input type="text" id="telegram-token-input" placeholder="Telegram Bot Token..." style="width: 100%; padding: 10px; margin-bottom: 20px; background: #222; color: #ff00ff; border: 1px solid #555;">
-            <button id="save-settings-btn" class="sys-btn" style="width: 100%; margin-bottom: 10px; color: #ff00ff; border-color: #ff00ff;">SAVE & RESTART BOT</button>
-            <button id="close-settings-btn" class="sys-btn" style="width: 100%;">CLOSE</button>
-        </div>
-    </div>
-    
-    <script>
-        // Provide close button logic
-        document.getElementById('close-btn').addEventListener('click', () => {
-            window.close();
-        });
-    </script>
-    <script src="neural_graph.js"></script>
-    <script src="renderer.js"></script>
+
+    <!-- JS Core -->
+    <script src="soft3_v2.js"></script>
 </body>
 </html>
