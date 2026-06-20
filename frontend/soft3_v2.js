@@ -646,6 +646,8 @@ function initGraph() {
                     .height(h)
                     .backgroundColor('#010203') // Deep darker realistic background
                     .graphData(gData)
+                    .dagMode('radialout') // Force hierarchical orbits
+                    .dagLevelDistance(100) // Distance between orbits
                     .nodeLabel('label')
                     .nodeColor(node => node.group === 5 ? '#ff00ff' : (node.id === 'EMPRESAS' ? '#ffffff' : (GROUP_COLORS[node.group] || '#8b949e')))
                     .nodeResolution(32) // Smooth 4K Spheres
