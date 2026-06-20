@@ -65,6 +65,8 @@ function switchTab(targetTabId, moduleName = null) {
     } else if (targetTabId === 'devs') {
         updateChatFocus('Programadores');
         loadDeveloperStats();
+    } else if (targetTabId === 'actions') {
+        updateChatFocus('Acciones Administrativas');
     }
 }
 
@@ -115,6 +117,7 @@ function updateChatSuggestions(topic) {
         'General': ['Estado general del servidor', 'Muéstrame el dashboard financiero', 'Resumen de problemas recientes'],
         'Mapa Neuronal': ['Explícame esta topología neuronal', 'Haz una auditoría de todos los nodos', 'Busca anomalías estructurales'],
         'Administración': ['Audita los accesos de administradores', '¿Qué módulos de administración están inactivos?', 'Generar reporte de administración'],
+        'Acciones Administrativas': ['¿Qué es un hot reload?', 'Resumen de las variables de entorno', 'Auditar los últimos deploys'],
         'Programadores': ['¿Quién es el programador más activo?', 'Resumen de productividad del equipo', 'Revisar estadísticas de git'],
         'Bóveda Obsidian': ['Generar nueva nota de análisis', 'Resumir estructura de conocimientos', 'Buscar dependencias rotas'],
         'Commits Hoy': ['Resumen de los últimos commits', '¿Quién hizo el último deploy?', '¿Hay commits con bugs críticos?'],
@@ -1075,6 +1078,95 @@ messageInput.addEventListener('keydown', (e) => {
         chatForm.dispatchEvent(new Event('submit', { cancelable: true }));
     }
 });
+
+// ─── ADMIN ACTIONS MODULE ────────────────────────────────────────────────────
+async function triggerServerRestart() {
+    if (!confirm('⚠️ ¿Estás seguro de que deseas forzar un reinicio del servidor? Se desconectarán todos los usuarios.')) return;
+    try {
+        triggerChat('⚠️ Iniciando secuencia de reinicio forzado del servidor (Hot Reload)...');
+        const res = await fetch('/api/admin/restart', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+            triggerChat('✅ Servidor reiniciado exitosamente. Conectando de nuevo...');
+            setTimeout(() => window.location.reload(), 2000);
+        } else {
+            alert('Error al reiniciar: ' + data.error);
+        }
+    } catch (e) {
+        alert('Fallo de conexión al servidor: ' + e.message);
+    }
+}
+
+async function triggerGitPush() {
+    const msgInput = document.getElementById('git-commit-msg');
+    const statusEl = document.getElementById('git-push-status');
+    const commitMessage = msgInput.value.trim() || 'Manual push from Acciones Panel';
+    
+    statusEl.style.color = '#0284c7';
+    statusEl.textContent = '⏳ Empaquetando y subiendo cambios al repositorio remoto...';
+    triggerChat(`⏳ Ejecutando git push con mensaje: "${commitMessage}"`);
+    
+    try {
+        const res = await fetch('/api/admin/git/push', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: commitMessage })
+        });
+        const data = await res.json();
+        if (data.success) {
+            statusEl.style.color = '#166534';
+            statusEl.textContent = '✅ ' + data.message;
+            triggerChat(`✅ Éxito al subir a GitHub: ${data.message}`);
+            msgInput.value = '';
+        } else {
+            statusEl.style.color = '#dc2626';
+            statusEl.textContent = '❌ Error: ' + (data.error || 'Fallo desconocido');
+            triggerChat(`❌ Error en GitHub Push: ${data.error}`);
+        }
+    } catch (e) {
+        statusEl.style.color = '#dc2626';
+        statusEl.textContent = '❌ Fallo de conexión: ' + e.message;
+    }
+}
+
+async function triggerAddDB() {
+    const dbInput = document.getElementById('new-db-url');
+    const statusEl = document.getElementById('db-add-status');
+    const dbUrl = dbInput.value.trim();
+    
+    if (!dbUrl) {
+        statusEl.style.color = '#dc2626';
+        statusEl.textContent = '❌ Ingresa una URL de conexión válida.';
+        return;
+    }
+    
+    if (!confirm('⚠️ ¿Añadir esta base de datos y forzar un reinicio del sistema para cargarla?')) return;
+    
+    statusEl.style.color = '#0284c7';
+    statusEl.textContent = '⏳ Guardando credenciales y reiniciando el servidor...';
+    triggerChat('⏳ Inyectando nueva base de datos en variables de entorno y reiniciando sistema...');
+    
+    try {
+        const res = await fetch('/api/admin/db/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ dbUrl })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            statusEl.style.color = '#166534';
+            statusEl.textContent = '✅ ' + data.message;
+            setTimeout(() => window.location.reload(), 2500);
+        } else {
+            statusEl.style.color = '#dc2626';
+            statusEl.textContent = '❌ Error: ' + (data.error || 'Fallo desconocido');
+        }
+    } catch (e) {
+        statusEl.style.color = '#dc2626';
+        statusEl.textContent = '❌ Fallo de conexión: ' + e.message;
+    }
+}
 
 // ─── INITIALIZATION ──────────────────────────────────────────────────────────
 initCharts();

@@ -245,6 +245,68 @@ app.get('/api/graph', (req, res) => {
     res.json({ nodes, links });
 });
 
+// --- CONTROL ACTIONS ENDPOINTS ---
+app.post('/api/admin/restart', (req, res) => {
+    try {
+        const fs = require('fs');
+        const envPath = path.join(__dirname, '..', '.env');
+        const now = new Date();
+        // Touch .env to trigger nodemon hot reload
+        if (fs.existsSync(envPath)) {
+            fs.utimesSync(envPath, now, now);
+        } else {
+            fs.writeFileSync(envPath, '# Touched by ACCIONES\n');
+        }
+        res.json({ success: true, message: 'Reinicio en caliente disparado exitosamente.' });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/api/admin/git/push', (req, res) => {
+    try {
+        const { message } = req.body;
+        const commitMsg = message ? message.replace(/"/g, '\\"') : 'Manual upload from Acciones Panel';
+        const { exec } = require('child_process');
+        
+        const cmd = `git add . && git commit -m "${commitMsg}" && git push`;
+        
+        exec(cmd, { cwd: path.join(__dirname, '..') }, (error, stdout, stderr) => {
+            if (error) {
+                // If there's nothing to commit, git returns an error code, which is fine
+                if (stdout.includes('nothing to commit') || stderr.includes('nothing to commit')) {
+                    return res.json({ success: true, message: 'No hay cambios nuevos para subir.' });
+                }
+                return res.status(500).json({ error: error.message, details: stderr || stdout });
+            }
+            res.json({ success: true, message: 'Cambios subidos a GitHub exitosamente.', output: stdout });
+        });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/api/admin/db/add', (req, res) => {
+    try {
+        const { dbUrl } = req.body;
+        if (!dbUrl) return res.status(400).json({ error: 'Falta la URL de conexión.' });
+        
+        const fs = require('fs');
+        const envPath = path.join(__dirname, '..', '.env');
+        
+        // Append to .env safely
+        fs.appendFileSync(envPath, `\n# Nueva DB añadida vía Panel de Acciones\nNEW_DB_URL=${dbUrl}\n`);
+        
+        // Trigger hot reload automatically
+        const now = new Date();
+        fs.utimesSync(envPath, now, now);
+        
+        res.json({ success: true, message: 'Base de datos guardada en .env y servidor reiniciando...' });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 app.get('/api/admin/conversaciones', async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT * FROM conversaciones ORDER BY fecha DESC LIMIT 100');

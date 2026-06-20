@@ -93,6 +93,12 @@
                 <li class="menu-item" data-target="mod_ayudas" data-module="Ayudas">
                     <span class="menu-icon">💡</span> Ayudas
                 </li>
+                
+                <li class="menu-divider">Mantenimiento</li>
+                
+                <li class="menu-item" data-target="actions">
+                    <span class="menu-icon">⚙️</span> Acciones
+                </li>
             </ul>
             
             <div class="sidebar-footer">
@@ -523,6 +529,54 @@
                 
                 <div class="devs-grid" id="devs-grid-container" style="display:none; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; padding-top: 15px;">
                     <!-- Inyectado por JS -->
+                </div>
+            </section>
+            
+            <!-- 7. ACCIONES (PANEL ADMINISTRATIVO) -->
+            <section id="page-actions" class="content-page">
+                <div class="page-header">
+                    <div class="header-left">
+                        <h1>Acciones del Servidor</h1>
+                        <p>Panel Administrativo de Control y Sincronización</p>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    
+                    <!-- Tarjeta: Seguridad GitHub -->
+                    <div class="table-card" style="padding: 20px;">
+                        <h3>🔐 Seguridad de Repositorio (GitHub)</h3>
+                        <p style="font-size: 0.9rem; color: #475569; margin-bottom: 15px;">El servidor gestiona sus permisos automáticamente a través de llaves criptográficas SSH para una seguridad de grado empresarial.</p>
+                        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 10px 15px; border-radius: 8px; color: #166534; font-weight: bold; margin-bottom: 20px;">
+                            ✅ Autenticación SSH Activa y Segura
+                        </div>
+                        
+                        <h4 style="margin-bottom: 10px;">Subir Cambios a GitHub (Push Manual)</h4>
+                        <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 10px;">Esta acción empaquetará todos los cambios recientes del proyecto y los subirá al repositorio maestro.</p>
+                        <input type="text" id="git-commit-msg" placeholder="Describe los cambios (Ej: Actualización de panel de acciones)" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; margin-bottom: 15px;">
+                        <button class="btn-primary" onclick="triggerGitPush()" style="width: 100%;">Subir Cambios a GitHub</button>
+                        <p id="git-push-status" style="font-size: 0.85rem; margin-top: 10px; font-weight: bold;"></p>
+                    </div>
+
+                    <!-- Tarjeta: Reinicio y Bases de Datos -->
+                    <div class="table-card" style="padding: 20px; border-top: 4px solid #ef4444;">
+                        <h3>⚠️ Acciones Críticas (Hot Reload)</h3>
+                        <p style="font-size: 0.9rem; color: #475569; margin-bottom: 15px;">Estas acciones reinician el motor Node.js y los servicios en vivo.</p>
+                        
+                        <div style="background: #fef2f2; border: 1px dashed #f87171; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                            <h4 style="color: #b91c1c; margin-top: 0; margin-bottom: 5px;">Reinicio Forzado (Recargar Motor Neuronal)</h4>
+                            <p style="font-size: 0.8rem; color: #991b1b; margin-bottom: 15px;">Desconectará a los usuarios temporalmente por un par de segundos mientras el sistema limpia la RAM y reinicia las conexiones.</p>
+                            <button class="btn-secondary" style="background: #ef4444; color: white; border: none; padding: 8px 15px;" onclick="triggerServerRestart()">Reiniciar Servidor Ahora</button>
+                        </div>
+                        
+                        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+                        
+                        <h4 style="margin-bottom: 10px;">Añadir Nueva Base de Datos Externa</h4>
+                        <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 10px;">Guarda una nueva URL (Supabase/MySQL) en las variables de entorno y reinicia el servidor automáticamente.</p>
+                        <input type="text" id="new-db-url" placeholder="URL de Conexión (ej. postgresql://...)" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; margin-bottom: 15px;">
+                        <button class="btn-secondary" onclick="triggerAddDB()" style="width: 100%;">Guardar y Reiniciar</button>
+                        <p id="db-add-status" style="font-size: 0.85rem; margin-top: 10px; font-weight: bold;"></p>
+                    </div>
                 </div>
             </section>
         </main>
