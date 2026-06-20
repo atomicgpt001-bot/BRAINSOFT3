@@ -534,31 +534,76 @@ function initGraph() {
         .then(r => r.json())
         .then(apiData => {
             let gData = apiData || { nodes: [], links: [] };
+            // === GENERADOR DE AUDITORÍA MASIVA (SIMULACIÓN DE BASE DE DATOS) ===
+            // Nodo Raíz Central
+            gData.nodes.push({ id: 'EMPRESAS', label: 'NÚCLEO SOFTRES', group: 0, size: 40 });
             
-            // Generamos la topología corporativa localmente y la anexamos
-            gData.nodes.push({ id: 'EMPRESAS', label: 'EMPRESAS', group: 0, size: 25 });
-            
-            // Conectar la nueva topología al nodo central antiguo ("YO") si existe
             if (gData.nodes.find(n => n.id === 'YO')) {
                 gData.links.push({ source: 'YO', target: 'EMPRESAS' });
             }
+
+            // Datos Base Simulados
+            const modNames = ['Ventas', 'Inventario', 'RRHH', 'Contabilidad', 'Reportes', 'Marketing', 'Soporte', 'Logística', 'CRM'];
+            const funcNames = ['Crear', 'Editar', 'Eliminar', 'Ver', 'Exportar', 'Importar', 'Auditar', 'Aprobar', 'Rechazar'];
+            const devTools = ['Inyección SQL', 'Editor de Nodos', 'Compilador', 'Terminal SSH', 'Visor Logs', 'Gestor Caché'];
+
+            let empresas = [];
+
+            // 1. Crear Rama de Herramientas de Desarrollo Core
+            gData.nodes.push({ id: 'DEV_CORE', label: 'HERRAMIENTAS CORE', group: 0, size: 25 });
+            gData.links.push({ source: 'EMPRESAS', target: 'DEV_CORE' });
             
-            const empresas = [
-                { id: "TEN-001", label: "Ingeniería AB", group: 1 },
-                { id: "TEN-002", label: "Distribuidora", group: 1 },
-                { id: "TEN-003", label: "Softres Core", group: 1 }
-            ];
-            
-            empresas.forEach(emp => {
-                gData.nodes.push({ id: emp.id, label: emp.label, group: emp.group, size: 15 });
-                gData.links.push({ source: 'EMPRESAS', target: emp.id });
-                
-                ['Ventas', 'Reportes', 'Resumen'].forEach((mod, idx) => {
-                    const modId = `${emp.id}_${mod}`;
-                    gData.nodes.push({ id: modId, label: mod, group: 2, size: 10 });
-                    gData.links.push({ source: emp.id, target: modId });
-                });
+            devTools.forEach((tool, i) => {
+                const toolId = `dev_tool_${i}`;
+                gData.nodes.push({ id: toolId, label: tool, group: 4, size: 12 });
+                gData.links.push({ source: 'DEV_CORE', target: toolId });
             });
+
+            // 2. Generar Empresas (12 Activas, 4 Inactivas)
+            for (let e = 1; e <= 16; e++) {
+                const isActive = e <= 12;
+                const empId = `EMP_${e}`;
+                const empName = isActive ? `Corp ${e} Activa` : `Empresa ${e} (INACTIVA)`;
+                // Colores: Verde/Azul para activas (group 1), Rojo Oscuro para inactivas (group 5)
+                const empGroup = isActive ? 1 : 5; 
+                
+                gData.nodes.push({ id: empId, label: empName, group: empGroup, size: 20 });
+                gData.links.push({ source: 'EMPRESAS', target: empId });
+                empresas.push({ id: empId, active: isActive });
+
+                // 3. Generar Usuarios por Empresa (2 a 5)
+                if (isActive) { // Solo empresas activas tienen estructura profunda
+                    const numUsers = Math.floor(Math.random() * 4) + 2;
+                    for (let u = 1; u <= numUsers; u++) {
+                        const userId = `${empId}_USR_${u}`;
+                        gData.nodes.push({ id: userId, label: `Usuario ${u}`, group: 6, size: 14 });
+                        gData.links.push({ source: empId, target: userId });
+
+                        // 4. Generar Módulos por Usuario (3 a 6)
+                        const numMods = Math.floor(Math.random() * 4) + 3;
+                        let usedMods = [];
+                        for (let m = 1; m <= numMods; m++) {
+                            let modName;
+                            do { modName = modNames[Math.floor(Math.random() * modNames.length)]; } while (usedMods.includes(modName));
+                            usedMods.push(modName);
+                            
+                            const modId = `${userId}_MOD_${m}`;
+                            gData.nodes.push({ id: modId, label: modName, group: 2, size: 10 });
+                            gData.links.push({ source: userId, target: modId });
+
+                            // 5. Generar Funciones por Módulo (2 a 4)
+                            const numFuncs = Math.floor(Math.random() * 3) + 2;
+                            for (let f = 1; f <= numFuncs; f++) {
+                                const funcName = funcNames[Math.floor(Math.random() * funcNames.length)];
+                                const funcId = `${modId}_FUNC_${f}`;
+                                gData.nodes.push({ id: funcId, label: funcName, group: 7, size: 5 });
+                                gData.links.push({ source: modId, target: funcId });
+                            }
+                        }
+                    }
+                }
+            }
+            // === FIN GENERADOR MASIVO ===
 
             const w = elem.clientWidth  || 600;
             const h = elem.clientHeight || 450;
@@ -630,7 +675,7 @@ function initGraph() {
                 
                 // Simular movimientos en vivo de forma fluida
                 setInterval(() => {
-                    if (gData.nodes.length > 200) return; // Prevent infinite growth
+                    if (gData.nodes.length > 1500) return; // Prevent infinite growth
                     const targetEmpresaId = empresas[Math.floor(Math.random() * empresas.length)].id;
                     const targetNode = gData.nodes.find(n => n.id === targetEmpresaId);
                     const moveId = `mov_${Date.now()}`;
