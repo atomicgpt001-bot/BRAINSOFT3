@@ -13,6 +13,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- 3D Force Graph Library -->
     <script src="https://unpkg.com/3d-force-graph"></script>
+    <!-- 2D Force Graph Library for Obsidian -->
+    <script src="https://unpkg.com/force-graph"></script>
     <!-- Core Style -->
     <link rel="stylesheet" href="style_v2.css">
 </head>
@@ -338,19 +340,30 @@
                         <h1>Bóveda Obsidian</h1>
                         <p>Documentación y notas de memoria recopiladas por la IA</p>
                     </div>
+                    <div class="header-right">
+                        <button class="btn-primary" style="background: var(--brand-blue); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 500; cursor: pointer;">+ Crear Nueva Nota</button>
+                    </div>
                 </div>
                 <div class="vault-explorer-container">
                     <div class="vault-tree" id="vault-tree-list">
                         <!-- Loaded dynamically -->
                         <div class="vault-folder">📂 Cargando estructura de la bóveda...</div>
                     </div>
-                    <div class="vault-preview">
-                        <div class="preview-header">
-                            <h3 id="preview-filename">Selecciona una nota</h3>
-                            <button id="summarize-node-btn" style="display:none;" class="btn-primary-small">Summarize AI</button>
+                    <div class="vault-preview" style="display: flex; flex-direction: column;">
+                        <div style="flex: 1;">
+                            <div class="preview-header">
+                                <h3 id="preview-filename">Selecciona una nota</h3>
+                                <button id="summarize-node-btn" style="display:none;" class="btn-primary-small">Summarize AI</button>
+                            </div>
+                            <div class="preview-body" id="preview-content">
+                                <p class="empty-state">Selecciona una nota de la bóveda a la izquierda para ver su contenido sincronizado.</p>
+                            </div>
                         </div>
-                        <div class="preview-body" id="preview-content">
-                            <p class="empty-state">Selecciona una nota de la bóveda a la izquierda para ver su contenido sincronizado.</p>
+                        
+                        <!-- 2D Neural Map (B&W) Container -->
+                        <div style="height: 250px; border-top: 1px solid rgba(0,0,0,0.1); position: relative; overflow: hidden; background: #f9f9f9;">
+                            <h4 style="position: absolute; top: 10px; left: 15px; font-size: 0.85rem; color: #666; z-index: 10;">Mapa Neuronal (Vista 2D B/N)</h4>
+                            <div id="neural-map-2d-container" style="width: 100%; height: 100%;"></div>
                         </div>
                     </div>
                 </div>
@@ -366,7 +379,13 @@
                 </div>
                 
                 <div class="prices-controls">
-                    <input type="text" id="prices-search-input" placeholder="🔍 Buscar por nombre o código de barras...">
+                    <select id="empresa-filter" style="padding: 10px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.1); outline: none; margin-right: 10px; background: white;">
+                        <option value="all">🏢 Todas las Empresas</option>
+                        <option value="TEN-001">Ingeniería y Construcciones AB (TEN-001)</option>
+                        <option value="TEN-002">Distribuidora Gómez CIA LTDA (TEN-002)</option>
+                        <option value="TEN-003">Softres Core (TEN-003)</option>
+                    </select>
+                    <input type="text" id="prices-search-input" placeholder="🔍 Buscar por nombre o código de barras..." style="flex: 1;">
                     <div class="prices-categories" id="prices-categories-list">
                         <!-- Categories injected dynamically -->
                     </div>

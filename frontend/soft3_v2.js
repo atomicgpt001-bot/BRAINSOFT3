@@ -305,21 +305,26 @@ async function loadPrices() {
     if (!tableBody) return;
     
     try {
-        const response = await fetch('/api/prices');
-        const data = await response.json();
-        
-        if (data.success) {
-            allProducts = data.products;
-            renderCategoryPills();
-            renderPricesTable();
-            if (loadingEl) loadingEl.style.display = 'none';
-            if (tableEl) tableEl.style.display = 'table';
-        } else {
-            if (loadingEl) loadingEl.textContent = 'Error al sincronizar Base de Datos Supabase.';
-        }
+        // MOCK DATA: Generamos datos seguros para múltiples empresas (Simulación)
+        const mockProducts = [
+            { id: 1, name: 'Tubería PVC 2"', code: 'PVC-001', category: 'Construcción', stock: 150, price: 12.50, image: 'https://via.placeholder.com/40/3b82f6', empresa: 'TEN-001' },
+            { id: 2, name: 'Cemento Portland 50kg', code: 'CEM-002', category: 'Construcción', stock: 80, price: 8.90, image: 'https://via.placeholder.com/40/10b981', empresa: 'TEN-001' },
+            { id: 3, name: 'Laptop Dell Vostro 3000', code: 'LAP-003', category: 'Tecnología', stock: 12, price: 550.00, image: 'https://via.placeholder.com/40/6366f1', empresa: 'TEN-002' },
+            { id: 4, name: 'Mouse Inalámbrico Logitech', code: 'MOU-004', category: 'Accesorios', stock: 45, price: 25.00, image: 'https://via.placeholder.com/40/f59e0b', empresa: 'TEN-002' },
+            { id: 5, name: 'Licencia Softres Core Anual', code: 'LIC-005', category: 'Software', stock: 999, price: 1200.00, image: 'https://via.placeholder.com/40/8b5cf6', empresa: 'TEN-003' }
+        ];
+
+        // Simulamos un pequeño retraso de red
+        await new Promise(r => setTimeout(r, 600));
+
+        allProducts = mockProducts;
+        renderCategoryPills();
+        renderPricesTable();
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (tableEl) tableEl.style.display = 'table';
     } catch (e) {
-        console.error('[Prices] Fetch error:', e);
-        if (loadingEl) loadingEl.textContent = 'Error de conexión con el Cerebro Soft 3.';
+        console.error('[Prices] Simulated fetch error:', e);
+        if (loadingEl) loadingEl.textContent = 'Error al simular la carga de precios.';
     }
 }
 
@@ -348,9 +353,19 @@ if (priceSearch) {
     priceSearch.addEventListener('input', renderPricesTable);
 }
 
+const empresaFilter = document.getElementById('empresa-filter');
+if (empresaFilter) {
+    empresaFilter.addEventListener('change', renderPricesTable);
+}
+
 function renderPricesTable() {
     const tbody = document.getElementById('prices-table-body');
+    const priceSearch = document.getElementById('prices-search-input');
+    const empresaSelect = document.getElementById('empresa-filter');
+    
     const searchQuery = priceSearch ? priceSearch.value.toLowerCase() : '';
+    const selectedEmpresa = empresaSelect ? empresaSelect.value : 'all';
+    
     if (!tbody) return;
     
     tbody.innerHTML = '';
@@ -358,7 +373,8 @@ function renderPricesTable() {
     const filtered = allProducts.filter(p => {
         const catMatch = activeCategory === 'Todas' || p.category === activeCategory;
         const searchMatch = p.name.toLowerCase().includes(searchQuery) || p.code.toLowerCase().includes(searchQuery);
-        return catMatch && searchMatch;
+        const empresaMatch = selectedEmpresa === 'all' || p.empresa === selectedEmpresa;
+        return catMatch && searchMatch && empresaMatch;
     });
     
     if (filtered.length === 0) {
@@ -605,7 +621,7 @@ function startChat() {
     sidebarUser.textContent = vendedor_id;
     avatarBtn.textContent = vendedor_id.substring(0, 2).toUpperCase();
     
-    addMessage(`¡Hola <strong>${vendedor_id}</strong>! Soy el asistente cognitivo de <strong>${knownBotName}</strong>. 
+    addMessage(`¡Hola <strong>${vendedor_id}</strong>! Soy <strong>Axel</strong>, el bot de desarrollo de <strong>${knownBotName}</strong>. 
     Estoy sincronizado con los últimos commits del día y las bases de datos de Supabase. 
     Puedes elegir cualquier módulo en la barra lateral o hacer preguntas. ¿En qué te puedo ayudar hoy?`, false);
 }

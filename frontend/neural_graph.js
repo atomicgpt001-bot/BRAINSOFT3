@@ -3,7 +3,7 @@ const graphContainer = document.getElementById('graph-container');
 
 let graphData = {
     nodes: [
-        { id: "YO", group: 0, color: "#ffffff" }
+        { id: "EMPRESAS", group: 0, color: "#ffffff" }
     ],
     links: []
 };
@@ -23,7 +23,8 @@ window.Graph = ForceGraph3D()(graphContainer)
     })
     .backgroundColor('#00000000') // Transparent to show CSS background
     .nodeColor(node => {
-        if (node.id === "YO") return "#ffffff";
+        if (node.id === "EMPRESAS") return "#ffffff";
+        if (node.group === 5) return "#ff00ff"; // Live movements
         if (window.recentNodes.includes(node.id)) return "#00ffcc";
         return node.color || "#cccccc";
     })
@@ -87,13 +88,14 @@ window.focusNodeInGraph = function(nodeId) {
     }
 };
 
-// Make "YO" bigger and others proportional
+// Make "EMPRESAS" bigger and others proportional
 Graph.nodeVal(node => {
-    if (node.id === "YO") return 25;
-    if (node.group === 1) return 15; // Neurona
-    if (node.group === 2) return 10; // Rama
+    if (node.id === "EMPRESAS") return 25;
+    if (node.group === 1) return 15; // Empresa
+    if (node.group === 2) return 10; // Modulo
     if (node.group === 4) return 6; // Chat Msg
-    return 5; // Nodo File
+    if (node.group === 5) return 4; // Live Movement
+    return 5; // Info node
 });
 
 // 2026 Physics: Expansive and Fluid
@@ -105,19 +107,19 @@ function updateGraph() {
 }
 
 // Global API to add nodes from renderer
-window.addNeuralNode = function(neurona, rama, color) {
-    let neuronaNode = graphData.nodes.find(n => n.id === neurona);
-    if (!neuronaNode) {
-        neuronaNode = { id: neurona, group: 1, color: color };
-        graphData.nodes.push(neuronaNode);
-        graphData.links.push({ source: "YO", target: neurona, color: color });
+window.addNeuralNode = function(empresa, modulo, color) {
+    let empresaNode = graphData.nodes.find(n => n.id === empresa);
+    if (!empresaNode) {
+        empresaNode = { id: empresa, group: 1, color: color };
+        graphData.nodes.push(empresaNode);
+        graphData.links.push({ source: "EMPRESAS", target: empresa, color: color });
     }
 
-    if (rama) {
-        const ramaId = `${neurona}_${rama}`;
-        if (!graphData.nodes.find(n => n.id === ramaId)) {
-            graphData.nodes.push({ id: ramaId, group: 2, color: color });
-            graphData.links.push({ source: neurona, target: ramaId, color: color });
+    if (modulo) {
+        const moduloId = `${empresa}_${modulo}`;
+        if (!graphData.nodes.find(n => n.id === moduloId)) {
+            graphData.nodes.push({ id: moduloId, group: 2, color: color });
+            graphData.links.push({ source: empresa, target: moduloId, color: color });
         }
     }
     updateGraph();
@@ -129,10 +131,52 @@ window.addEventListener('resize', () => {
 });
 
 window.clearGraph = function() {
-    graphData.nodes = [{ id: "YO", group: 0, color: "#ffffff" }];
+    graphData.nodes = [{ id: "EMPRESAS", group: 0, color: "#ffffff" }];
     graphData.links = [];
+    buildCorporateTopology();
     updateGraph();
 };
+
+window.buildCorporateTopology = function() {
+    const empresas = [
+        { id: "TEN-001 (Ingeniería AB)", color: "#58a6ff", modulos: ["Ventas", "Reportes", "Resumen"] },
+        { id: "TEN-002 (Distribuidora)", color: "#3fb950", modulos: ["Inventario", "Compras", "Resumen"] },
+        { id: "TEN-003 (Softres Core)", color: "#bc8cff", modulos: ["Admin", "Logs", "Resumen"] }
+    ];
+
+    empresas.forEach(emp => {
+        window.addNeuralNode(emp.id, null, emp.color);
+        emp.modulos.forEach(mod => {
+            window.addNeuralNode(emp.id, mod, emp.color);
+        });
+    });
+};
+
+// Start Corporate Topology by default
+setTimeout(() => {
+    buildCorporateTopology();
+    simulateLiveMovements();
+}, 1000);
+
+function simulateLiveMovements() {
+    setInterval(() => {
+        if (graphData.nodes.length > 50) return; // Prevent infinite growth
+        const empresas = ["TEN-001 (Ingeniería AB)", "TEN-002 (Distribuidora)", "TEN-003 (Softres Core)"];
+        const targetEmpresa = empresas[Math.floor(Math.random() * empresas.length)];
+        const moveId = `mov_${Date.now()}`;
+        
+        graphData.nodes.push({ id: moveId, group: 5, color: "#ff00ff", name: "Nuevo Registro" });
+        graphData.links.push({ source: targetEmpresa, target: moveId, color: "rgba(255,0,255,0.4)" });
+        updateGraph();
+        
+        // Remove old movements
+        setTimeout(() => {
+            graphData.nodes = graphData.nodes.filter(n => n.id !== moveId);
+            graphData.links = graphData.links.filter(l => l.target.id !== moveId && l.target !== moveId);
+            updateGraph();
+        }, 8000);
+    }, 4500);
+}
 
 let lastMsgNodeId = null;
 
@@ -218,3 +262,25 @@ window.resetHighlight = function() {
       .nodeVal(Graph.nodeVal())
       .linkDirectionalParticles(Graph.linkDirectionalParticles());
 };
+
+
+// 2D B&W Force Graph for Obsidian
+const graph2dContainer = document.getElementById('neural-map-2d-container');
+if (graph2dContainer && typeof ForceGraph !== 'undefined') {
+    window.Graph2D = ForceGraph()(graph2dContainer)
+        .graphData(graphData)
+        .nodeId('id')
+        .nodeLabel('id')
+        .nodeColor(() => '#555555')
+        .linkColor(() => '#cccccc')
+        .backgroundColor('#f9f9f9');
+
+    // Update 2D graph when 3D graph updates
+    const originalUpdateGraph = window.updateGraph;
+    window.updateGraph = function() {
+        if (originalUpdateGraph) originalUpdateGraph();
+        if (window.Graph2D) {
+            window.Graph2D.graphData(graphData);
+        }
+    };
+}
