@@ -685,28 +685,47 @@ function initGraph() {
                     })
                     .onNodeClick(node => {
                         updateChatFocus(node.label);
-                        const dist = 70;
-                        const ratio = 1 + dist / Math.hypot(node.x, node.y, node.z);
-                        Graph.cameraPosition(
-                            { x: node.x * ratio, y: node.y * ratio, z: node.z * ratio },
-                            node,
-                            800
-                        );
                         
-                        // Trigger AI Intelligent Analysis
-                        const contextMap = {
-                            0: 'Núcleo Central',
-                            1: 'Empresa Activa',
-                            2: 'Módulo del Sistema',
-                            4: 'Herramienta Core de Desarrollo',
-                            5: 'Empresa Inactiva',
-                            6: 'Usuario del Sistema',
-                            7: 'Función de Permisos'
-                        };
-                        const nodeType = contextMap[node.group] || 'Nodo de Datos';
-                        const prompt = `Acabo de hacer clic en el nodo "${node.label}" (Tipo de elemento: ${nodeType}). Háblame de forma breve e inteligente sobre este nodo en particular. ¿Qué significa, para qué sirve dentro de esta gigantesca topología neuronal que estamos viendo y qué acciones podría tomar sobre él? Compórtate como el asistente de desarrollo integrado a este sistema.`;
-                        
-                        triggerChat(prompt);
+                        // 1. Trigger AI Intelligent Analysis (Fired First)
+                        try {
+                            const contextMap = {
+                                0: 'Núcleo Central',
+                                1: 'Empresa Activa',
+                                2: 'Módulo del Sistema',
+                                4: 'Herramienta Core de Desarrollo',
+                                5: 'Empresa Inactiva',
+                                6: 'Usuario del Sistema',
+                                7: 'Función de Permisos'
+                            };
+                            const nodeType = contextMap[node.group] || 'Nodo de Datos';
+                            const promptMsg = `Acabo de hacer clic en el nodo "${node.label}" (Tipo de elemento: ${nodeType}). Háblame de forma breve e inteligente sobre este nodo en particular. ¿Qué significa, para qué sirve dentro de esta gigantesca topología neuronal que estamos viendo y qué acciones podría tomar sobre él? Compórtate como el asistente de desarrollo integrado a este sistema.`;
+                            
+                            if (typeof triggerChat === 'function') {
+                                triggerChat(promptMsg);
+                            } else {
+                                console.error("triggerChat function not found");
+                            }
+                        } catch(e) {
+                            console.error("Error triggering chat:", e);
+                        }
+
+                        // 2. Camera Animation (Wrapped in try/catch to avoid blocking)
+                        try {
+                            const dist = 70;
+                            // Fallback to 0 if coordinates are missing (e.g., node just spawned)
+                            const nx = node.x || 0;
+                            const ny = node.y || 0;
+                            const nz = node.z || 0;
+                            const ratio = 1 + dist / (Math.hypot(nx, ny, nz) || 1);
+                            
+                            Graph.cameraPosition(
+                                { x: nx * ratio, y: ny * ratio, z: nz * ratio },
+                                node,
+                                800
+                            );
+                        } catch(e) {
+                            console.error("Camera move failed:", e);
+                        }
                     });
 
                 // Tighter and softer physics to keep nodes grouped
