@@ -287,6 +287,45 @@ app.listen(PORT, () => {
     console.log(`[NEURAL CORE] Backend running on port ${PORT}`);
 });
 
+// --- GIT STATS ENDPOINTS ---
+app.get('/api/git/stats', async (req, res) => {
+    try {
+        const { exec } = require('child_process');
+        // We use formatting %an (author name) and %ad (author date)
+        exec('git log --format="%an|%ad" --date=short', { cwd: path.join(__dirname, '..'), maxBuffer: 1024 * 1024 * 10 }, (error, stdout, stderr) => {
+            if (error) {
+                console.error('Git log error:', error);
+                return res.status(500).json({ error: error.message });
+            }
+            
+            const lines = stdout.split('\n').filter(l => l.trim() !== '');
+            const authorStats = {};
+            
+            lines.forEach(line => {
+                const parts = line.split('|');
+                if (parts.length >= 2) {
+                    const author = parts[0].trim();
+                    const date = parts[1].trim();
+                    
+                    if (!authorStats[author]) {
+                        authorStats[author] = { name: author, commits: 0, lastCommit: date };
+                    }
+                    authorStats[author].commits += 1;
+                    // Log usually outputs newest first, so the first time we see the author, we capture the most recent date
+                    if (!authorStats[author].lastCommit) {
+                        authorStats[author].lastCommit = date;
+                    }
+                }
+            });
+            
+            const statsArray = Object.values(authorStats).sort((a, b) => b.commits - a.commits);
+            res.json(statsArray);
+        });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // --- PRICE LIST ENDPOINTS ---
 app.get('/api/prices', async (req, res) => {
     try {

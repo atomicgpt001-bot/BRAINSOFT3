@@ -62,6 +62,9 @@ function switchTab(targetTabId, moduleName = null) {
     } else if (targetTabId === 'prices') {
         updateChatFocus('Lista de Precios');
         loadPrices();
+    } else if (targetTabId === 'devs') {
+        updateChatFocus('Programadores');
+        loadDeveloperStats();
     }
 }
 
@@ -112,6 +115,7 @@ function updateChatSuggestions(topic) {
         'General': ['Estado general del servidor', 'Muéstrame el dashboard financiero', 'Resumen de problemas recientes'],
         'Mapa Neuronal': ['Explícame esta topología neuronal', 'Haz una auditoría de todos los nodos', 'Busca anomalías estructurales'],
         'Administración': ['Audita los accesos de administradores', '¿Qué módulos de administración están inactivos?', 'Generar reporte de administración'],
+        'Programadores': ['¿Quién es el programador más activo?', 'Resumen de productividad del equipo', 'Revisar estadísticas de git'],
         'Bóveda Obsidian': ['Generar nueva nota de análisis', 'Resumir estructura de conocimientos', 'Buscar dependencias rotas'],
         'Commits Hoy': ['Resumen de los últimos commits', '¿Quién hizo el último deploy?', '¿Hay commits con bugs críticos?'],
         'Soporte': ['Listar últimos tickets abiertos', 'Tiempos de resolución de hoy', 'Revisar logs de caídas']
@@ -327,6 +331,70 @@ function loadModuleDetails(name) {
 }
 
 // ─── SUPABASE PRICES TABLE ───────────────────────────────────────────────────
+// ─── DEVELOPERS (GIT STATS) ──────────────────────────────────────────────────
+async function loadDeveloperStats() {
+    const loadingEl = document.getElementById('devs-loading');
+    const gridEl = document.getElementById('devs-grid-container');
+    
+    if (!loadingEl || !gridEl) return;
+    
+    loadingEl.style.display = 'block';
+    gridEl.style.display = 'none';
+    gridEl.innerHTML = '';
+    
+    try {
+        const res = await fetch('/api/git/stats');
+        if (!res.ok) throw new Error('Error al obtener estadísticas de git');
+        const stats = await res.json();
+        
+        if (stats.length === 0) {
+            gridEl.innerHTML = '<p>No se encontraron aportes registrados.</p>';
+        } else {
+            stats.forEach(dev => {
+                const card = document.createElement('div');
+                card.className = 'module-card';
+                
+                let activityLevel = 'Baja';
+                let colorClass = 'badge-red'; // CSS might not exist, but we can inline
+                let colorHex = '#ef4444';
+                
+                if (dev.commits > 50) {
+                    activityLevel = 'Alta';
+                    colorHex = '#22c55e';
+                } else if (dev.commits > 10) {
+                    activityLevel = 'Media';
+                    colorHex = '#eab308';
+                }
+                
+                card.innerHTML = `
+                    <h3 style="margin-top:0;"><span style="color: ${colorHex};">●</span> ${dev.name}</h3>
+                    <p style="margin: 5px 0;">Commits totales: <strong style="font-size: 1.2rem;">${dev.commits}</strong></p>
+                    <p style="margin: 5px 0; font-size: 0.85rem; color: #64748b;">Último aporte: ${dev.lastCommit}</p>
+                    <div style="margin-top: 15px; display: inline-block; background: #f1f5f9; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; color: #334155; border: 1px solid #cbd5e1;">
+                        Nivel de Actividad: <strong style="color: ${colorHex};">${activityLevel}</strong>
+                    </div>
+                `;
+                
+                card.onclick = () => {
+                    const prompt = `Analiza el rendimiento del programador "${dev.name}". Ha realizado ${dev.commits} commits en total y su última actividad fue el ${dev.lastCommit}. ¿Qué opinas de su nivel de actividad (${activityLevel}) y su constancia en el proyecto?`;
+                    const display = `📍 Analizando perfil del programador: **${dev.name}**`;
+                    if (typeof triggerChat === 'function') {
+                        triggerChat(display, prompt);
+                    }
+                };
+                
+                gridEl.appendChild(card);
+            });
+        }
+        
+        loadingEl.style.display = 'none';
+        gridEl.style.display = 'grid';
+    } catch (e) {
+        console.error(e);
+        loadingEl.textContent = '❌ Error al cargar los programadores del sistema.';
+    }
+}
+
 let allProducts = [];
 let activeCategory = 'Todas';
 

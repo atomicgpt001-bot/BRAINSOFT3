@@ -42,6 +42,9 @@
                 <li class="menu-item" data-target="prices">
                     <span class="menu-icon">💰</span> Lista de Precios
                 </li>
+                <li class="menu-item" data-target="devs">
+                    <span class="menu-icon">👨‍💻</span> Programadores
+                </li>
                 
                 <li class="menu-divider">Módulos del Sistema</li>
                 
@@ -503,6 +506,25 @@
                 </div>
             </section>
             
+        
+            <!-- 6. PROGRAMADORES DEL SISTEMA -->
+            <section id="page-devs" class="content-page">
+                <div class="page-header">
+                    <div class="header-left">
+                        <h1>Programadores del Sistema</h1>
+                        <p>Estadísticas reales en vivo del historial de aportes (Git Log)</p>
+                    </div>
+                    <div class="header-right">
+                        <button class="btn-secondary" onclick="loadDeveloperStats()">🔄 Actualizar Ahora</button>
+                    </div>
+                </div>
+                
+                <div id="devs-loading" class="loading-spinner">Analizando repositorio Git...</div>
+                
+                <div class="devs-grid" id="devs-grid-container" style="display:none; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; padding-top: 15px;">
+                    <!-- Inyectado por JS -->
+                </div>
+            </section>
         </main>
         
         <!-- RIGHT PANEL: CHAT IA (Cerebro Soft 3) -->
@@ -518,212 +540,10 @@
                 <button id="new-chat-btn">＋ Limpiar</button>
             </div>
             
-            <!-- Chat history scroll area -->
-            <div id="chat-history">
-                <!-- Injected dynamically -->
-            </div>
+            <div id="chat-history"></div>
             
-            <!-- Chat Suggestions -->
-            <div id="chat-suggestions" class="chat-suggestions">
-                <!-- Chips injected dynamically -->
-            </div>
+            <div id="chat-suggestions" class="chat-suggestions"></div>
 
-            <!-- Chat Input Area -->
-            <div id="chat-input-area">
-                <form id="chat-form">
-                    <textarea id="message-input" placeholder="Pregunta sobre la base de datos, commits o módulos..." rows="1"></textarea>
-                    <button type="submit" id="send-btn">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-                        </svg>
-                    </button>
-                </form>
-                                    <td><span class="badge-blue">c10</span></td>
-                                    <td>Crear soft3_v2.html sin caché e interfaz responsive</td>
-                                    <td><span class="badge-success">Pushed</span></td>
-                                </tr>
-                                <tr>
-                                    <td><span class="badge-blue">c09</span></td>
-                                    <td>Eliminar modal de perfil viejo que provocaba congelamiento</td>
-                                    <td><span class="badge-success">Pushed</span></td>
-                                </tr>
-                                <tr>
-                                    <td><span class="badge-blue">c08</span></td>
-                                    <td>Refactorizar endpoint de base de datos para mapeo Supabase</td>
-                                    <td><span class="badge-success">Pushed</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="table-container">
-                        <h3>🚨 Errores y Bugs Detectados</h3>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Código</th>
-                                    <th>Error Reportado</th>
-                                    <th>Acción Correctiva</th>
-                                </tr>
-                            </thead>
-                            <tbody id="errors-table-body">
-                                <tr>
-                                    <td><span class="badge-red">e01</span></td>
-                                    <td>No se pudo reiniciar por conflicto de tipos INT y VARCHAR en BD</td>
-                                    <td>Corregida foreign key en Supabase</td>
-                                </tr>
-                                <tr>
-                                    <td><span class="badge-red">e02</span></td>
-                                    <td>ForceGraph3D empuja el chat fuera de la pantalla en layouts flex</td>
-                                    <td>Añadidos ResizeObserver y contenedores fijos</td>
-                                </tr>
-                                <tr>
-                                    <td><span class="badge-red">e03</span></td>
-                                    <td>Falta de API KEY en entorno de producción (.env VM bloqueado)</td>
-                                    <td>Configurado fallback seguro en servidor web</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-            
-            <!-- 2. MAPA NEURONAL 3D -->
-            <section id="page-map" class="content-page">
-                <div class="page-header">
-                    <div class="header-left">
-                        <h1>Mapa Neuronal Soft 3</h1>
-                        <p>Interactúa con los módulos y el historial neuronal en 3D</p>
-                    </div>
-                    <div class="header-right">
-                        <span id="current-node-indicator">Sesión: General — Clic en un nodo para enfocar</span>
-                    </div>
-                </div>
-                <div id="graph-panel-content">
-                    <div id="graph-container"></div>
-                    <!-- Old hardcoded legend removed -->
-                </div>
-            </section>
-            
-            <!-- 3. BÓVEDA OBSIDIAN -->
-            <section id="page-vault" class="content-page">
-                <div class="page-header">
-                    <div class="header-left">
-                        <h1>Bóveda Obsidian</h1>
-                        <p>Documentación y notas de memoria recopiladas por la IA</p>
-                    </div>
-                </div>
-                <div class="vault-explorer-container">
-                    <div class="vault-tree" id="vault-tree-list">
-                        <!-- Loaded dynamically -->
-                        <div class="vault-folder">📂 Cargando estructura de la bóveda...</div>
-                    </div>
-                    <div class="vault-preview">
-                        <div class="preview-header">
-                            <h3 id="preview-filename">Selecciona una nota</h3>
-                            <button id="summarize-node-btn" style="display:none;" class="btn-primary-small">Summarize AI</button>
-                        </div>
-                        <div class="preview-body" id="preview-content">
-                            <p class="empty-state">Selecciona una nota de la bóveda a la izquierda para ver su contenido sincronizado.</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            
-            <!-- 4. LISTA DE PRECIOS -->
-            <section id="page-prices" class="content-page">
-                <div class="page-header">
-                    <div class="header-left">
-                        <h1>Listado de Precios de Productos</h1>
-                        <p>Consulta interactiva de productos sincronizada con la base de datos Supabase</p>
-                    </div>
-                </div>
-                
-                <div class="prices-controls">
-                    <input type="text" id="prices-search-input" placeholder="🔍 Buscar por nombre o código de barras...">
-                    <div class="prices-categories" id="prices-categories-list">
-                        <!-- Categories injected dynamically -->
-                    </div>
-                </div>
-                
-                <div class="table-card">
-                    <div id="prices-loading" class="loading-spinner">Sincronizando tabla de precios...</div>
-                    <table id="prices-data-table" class="premium-table" style="display:none;">
-                        <thead>
-                            <tr>
-                                <th>Miniatura</th>
-                                <th>Código</th>
-                                <th>Nombre del Producto / Servicio</th>
-                                <th>Categoría</th>
-                                <th>Inventario</th>
-                                <th>Precio Neto</th>
-                            </tr>
-                        </thead>
-                        <tbody id="prices-table-body">
-                            <!-- Injected by script -->
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-            
-            <!-- 5. DETALLE DE MÓDULO (Páginas dinámicas para Administración, Empleados, etc.) -->
-            <section id="page-module-details" class="content-page">
-                <div class="page-header">
-                    <div class="header-left">
-                        <h1 id="module-detail-title">Módulo del Sistema</h1>
-                        <p id="module-detail-subtitle">Operaciones del módulo</p>
-                    </div>
-                    <div class="header-right">
-                        <button class="btn-secondary" id="back-to-dashboard-btn">⬅ Volver a Vista Global</button>
-                    </div>
-                </div>
-                
-                <div class="module-dashboard-simulation">
-                    <div class="quick-stats-row" id="module-stats-row">
-                        <!-- Dynamic cards -->
-                    </div>
-                    
-                    <div class="module-table-wrapper">
-                        <h3>Registros del Módulo</h3>
-                        <div class="table-card">
-                            <table class="premium-table">
-                                <thead id="module-table-header">
-                                    <!-- Injected -->
-                                </thead>
-                                <tbody id="module-table-body">
-                                    <!-- Injected -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            
-        </main>
-        
-        <!-- RIGHT PANEL: CHAT IA (Cerebro Soft 3) -->
-        <section id="chat-panel">
-            <div class="chat-header-panel">
-                <div class="chat-header-info">
-                    <h3>💬 Cerebro Soft 3</h3>
-                    <div class="chat-header-status">
-                        <span class="status-dot"></span>
-                        <p>Enfoque: <span id="chat-topic">General</span></p>
-                    </div>
-                </div>
-                <button id="new-chat-btn">＋ Limpiar</button>
-            </div>
-            
-            <!-- Chat history scroll area -->
-            <div id="chat-history">
-                <!-- Injected dynamically -->
-            </div>
-            
-            <!-- Chat Suggestions -->
-            <div id="chat-suggestions" class="chat-suggestions">
-                <!-- Chips injected dynamically -->
-            </div>
-
-            <!-- Chat Input Area -->
             <div id="chat-input-area">
                 <form id="chat-form">
                     <textarea id="message-input" placeholder="Pregunta sobre la base de datos, commits o módulos..." rows="1"></textarea>
@@ -735,7 +555,6 @@
                 </form>
             </div>
         </section>
-        
     </div>
 
     <style>
@@ -770,7 +589,6 @@
         }
     </style>
 
-    <!-- JS Core -->
     <script src="soft3_v2.js"></script>
 </body>
 </html>
