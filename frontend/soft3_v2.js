@@ -698,10 +698,11 @@ function initGraph() {
                                 7: 'Función de Permisos'
                             };
                             const nodeType = contextMap[node.group] || 'Nodo de Datos';
-                            const promptMsg = `Acabo de hacer clic en el nodo "${node.label}" (Tipo de elemento: ${nodeType}). Háblame de forma breve e inteligente sobre este nodo en particular. ¿Qué significa, para qué sirve dentro de esta gigantesca topología neuronal que estamos viendo y qué acciones podría tomar sobre él? Compórtate como el asistente de desarrollo integrado a este sistema.`;
+                            const hiddenPrompt = `Acabo de hacer clic en el nodo "${node.label}" (Tipo de elemento: ${nodeType}). Háblame de forma breve e inteligente sobre este nodo en particular. ¿Qué significa, para qué sirve dentro de esta gigantesca topología neuronal que estamos viendo y qué acciones podría tomar sobre él? Compórtate como el asistente de desarrollo integrado a este sistema.`;
+                            const displayMsg = `📍 Analizando nodo: **${node.label}**`;
                             
                             if (typeof triggerChat === 'function') {
-                                triggerChat(promptMsg);
+                                triggerChat(displayMsg, hiddenPrompt);
                             } else {
                                 console.error("triggerChat function not found");
                             }
@@ -875,7 +876,7 @@ chatForm.addEventListener('submit', async (e) => {
     await triggerChat(text);
 });
 
-async function triggerChat(text) {
+async function triggerChat(text, hiddenPrompt = null) {
     if (!text) return;
     addMessage(text, true);
 
@@ -894,12 +895,14 @@ async function triggerChat(text) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 25000); // 25s timeout
 
+        const messageToSend = hiddenPrompt ? hiddenPrompt : text;
+
         const response = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             signal: controller.signal,
             body: JSON.stringify({
-                message: text + '\n[Context: ' + context + ']',
+                message: messageToSend + '\n[Context: ' + context + ']',
                 topic: currentTopic,
                 vendedor_id,
                 session_id: sessionId,
