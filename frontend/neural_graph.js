@@ -27,7 +27,7 @@ window.Graph = ForceGraph3D()(graphContainer)
         if (window.recentNodes.includes(node.id)) return "#00ffcc";
         return node.color || "#cccccc";
     })
-    .nodeRelSize(7)
+    .nodeRelSize(4)
     .nodeResolution(16)
     .linkColor(link => {
         if (window.recentNodes.includes(link.source.id) || window.recentNodes.includes(link.target.id)) {
@@ -47,7 +47,12 @@ window.Graph = ForceGraph3D()(graphContainer)
         }
         return 1; // Constant slow flow
     })
-    .linkDirectionalParticleWidth(1.5)
+    
+    .linkDirectionalParticleWidth(1.5);
+
+Graph.d3Force('charge').strength(-300);
+Graph.d3Force('link').distance(80);
+
     .linkDirectionalParticleSpeed(d => d.value * 0.002 || 0.005)
     .onNodeClick(node => {
         if (node.group === 3) { // File node
