@@ -936,7 +936,7 @@ async function triggerChat(text) {
         }
         console.error('[Chat Error]', err);
     }
-});
+}
 
 // Textarea auto-resize listener
 messageInput.addEventListener('input', function () {
