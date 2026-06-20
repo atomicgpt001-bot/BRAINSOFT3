@@ -98,6 +98,39 @@ function updateChatFocus(topic) {
     
     // Add info note in chat
     addMessage(`📍 Enfoque cambiado a: <strong>${topic}</strong>. Pregúntame lo que necesites sobre esta sección.`, false, true);
+    
+    // Render smart suggestions based on topic
+    updateChatSuggestions(topic);
+}
+
+// ─── CHAT SUGGESTIONS LOGIC ──────────────────────────────────────────────────
+function updateChatSuggestions(topic) {
+    const suggestionsContainer = document.getElementById('chat-suggestions');
+    if (!suggestionsContainer) return;
+    
+    const contextMap = {
+        'General': ['Estado general del servidor', 'Muéstrame el dashboard financiero', 'Resumen de problemas recientes'],
+        'Mapa Neuronal': ['Explícame esta topología neuronal', 'Haz una auditoría de todos los nodos', 'Busca anomalías estructurales'],
+        'Administración': ['Audita los accesos de administradores', '¿Qué módulos de administración están inactivos?', 'Generar reporte de administración'],
+        'Bóveda Obsidian': ['Generar nueva nota de análisis', 'Resumir estructura de conocimientos', 'Buscar dependencias rotas'],
+        'Commits Hoy': ['Resumen de los últimos commits', '¿Quién hizo el último deploy?', '¿Hay commits con bugs críticos?'],
+        'Soporte': ['Listar últimos tickets abiertos', 'Tiempos de resolución de hoy', 'Revisar logs de caídas']
+    };
+    
+    // Default fallback
+    let suggestions = contextMap[topic];
+    if (!suggestions) {
+        suggestions = [`¿Cómo funciona el módulo ${topic}?`, `Dame métricas sobre ${topic}`, `Detectar errores en ${topic}`];
+    }
+    
+    suggestionsContainer.innerHTML = '';
+    suggestions.forEach(sugg => {
+        const chip = document.createElement('div');
+        chip.className = 'suggestion-chip';
+        chip.textContent = sugg;
+        chip.onclick = () => triggerChat(sugg);
+        suggestionsContainer.appendChild(chip);
+    });
 }
 
 // ─── CHART.JS DASHBOARD ───────────────────────────────────────────────────────
@@ -619,7 +652,7 @@ function initGraph() {
                 legend.style.color = '#fff';
                 legend.style.fontFamily = 'monospace';
                 legend.style.fontSize = '0.65rem';
-                legend.style.pointerEvents = 'none'; // No bloquear clicks
+                legend.style.pointerEvents = 'auto'; // Habilitar clicks
                 legend.style.zIndex = '1000';
                 legend.style.backdropFilter = 'blur(4px)';
                 legend.style.display = 'flex';
@@ -628,15 +661,33 @@ function initGraph() {
                 legend.style.width = 'fit-content';
                 legend.style.boxShadow = '0 4px 6px rgba(0,0,0,0.5)';
 
+                window.focusLayer = function(groupId, layerName) {
+                    if (!window.Graph) return;
+                    const nodeData = window.Graph.graphData();
+                    const targetNode = nodeData.nodes.find(n => n.group === groupId);
+                    if (targetNode) {
+                        const dist = 150;
+                        const ratio = 1 + dist / (Math.hypot(targetNode.x || 1, targetNode.y || 1, targetNode.z || 1));
+                        window.Graph.cameraPosition(
+                            { x: targetNode.x * ratio, y: targetNode.y * ratio, z: targetNode.z * ratio },
+                            targetNode,
+                            1000
+                        );
+                        const hiddenPrompt = `He hecho clic en la capa del índice neuronal: "${layerName}". Haz una auditoría inteligente y explícame en detalle qué rol juega toda esta capa (todos los nodos de este tipo) dentro del ecosistema de Softres. Compórtate como el asistente de datos del mapa neuronal.`;
+                        const displayMsg = `📍 Explorando capa neuronal: **${layerName}**`;
+                        triggerChat(displayMsg, hiddenPrompt);
+                    }
+                };
+
                 legend.innerHTML = `
                     <div style="color: #00ffff; font-weight: bold; text-align: center; margin-bottom: 4px; border-bottom: 1px solid #1f2937; padding-bottom: 4px;">ÍNDICE NEURAL</div>
-                    <div style="display: flex; align-items: center;"><span style="display:inline-block; width:8px; height:8px; background:#00ffff; border-radius:50%; margin-right:6px; box-shadow: 0 0 4px #00ffff;"></span> NÚCLEO CORE</div>
-                    <div style="display: flex; align-items: center;"><span style="display:inline-block; width:8px; height:8px; background:#ff0055; border-radius:50%; margin-right:6px; box-shadow: 0 0 4px #ff0055;"></span> EMPRESA ACTIVA</div>
-                    <div style="display: flex; align-items: center;"><span style="display:inline-block; width:8px; height:8px; background:#ff3300; border-radius:50%; margin-right:6px; box-shadow: 0 0 4px #ff3300;"></span> EMPRESA INACTIVA</div>
-                    <div style="display: flex; align-items: center;"><span style="display:inline-block; width:8px; height:8px; background:#0088ff; border-radius:50%; margin-right:6px; box-shadow: 0 0 4px #0088ff;"></span> USUARIOS</div>
-                    <div style="display: flex; align-items: center;"><span style="display:inline-block; width:8px; height:8px; background:#00ff44; border-radius:50%; margin-right:6px; box-shadow: 0 0 4px #00ff44;"></span> MÓDULOS</div>
-                    <div style="display: flex; align-items: center;"><span style="display:inline-block; width:8px; height:8px; background:#ffffff; border-radius:50%; margin-right:6px; box-shadow: 0 0 4px #ffffff;"></span> FUNCIONES</div>
-                    <div style="display: flex; align-items: center;"><span style="display:inline-block; width:8px; height:8px; background:#ffea00; border-radius:50%; margin-right:6px; box-shadow: 0 0 4px #ffea00;"></span> DEV TOOLS</div>
+                    <div onclick="focusLayer(0, 'NÚCLEO CORE')" style="display: flex; align-items: center; cursor: pointer;" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1"><span style="display:inline-block; width:8px; height:8px; background:#00ffff; border-radius:50%; margin-right:6px; box-shadow: 0 0 4px #00ffff;"></span> NÚCLEO CORE</div>
+                    <div onclick="focusLayer(1, 'EMPRESA ACTIVA')" style="display: flex; align-items: center; cursor: pointer;" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1"><span style="display:inline-block; width:8px; height:8px; background:#ff0055; border-radius:50%; margin-right:6px; box-shadow: 0 0 4px #ff0055;"></span> EMPRESA ACTIVA</div>
+                    <div onclick="focusLayer(5, 'EMPRESA INACTIVA')" style="display: flex; align-items: center; cursor: pointer;" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1"><span style="display:inline-block; width:8px; height:8px; background:#ff3300; border-radius:50%; margin-right:6px; box-shadow: 0 0 4px #ff3300;"></span> EMPRESA INACTIVA</div>
+                    <div onclick="focusLayer(6, 'USUARIOS')" style="display: flex; align-items: center; cursor: pointer;" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1"><span style="display:inline-block; width:8px; height:8px; background:#0088ff; border-radius:50%; margin-right:6px; box-shadow: 0 0 4px #0088ff;"></span> USUARIOS</div>
+                    <div onclick="focusLayer(2, 'MÓDULOS')" style="display: flex; align-items: center; cursor: pointer;" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1"><span style="display:inline-block; width:8px; height:8px; background:#00ff44; border-radius:50%; margin-right:6px; box-shadow: 0 0 4px #00ff44;"></span> MÓDULOS</div>
+                    <div onclick="focusLayer(7, 'FUNCIONES')" style="display: flex; align-items: center; cursor: pointer;" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1"><span style="display:inline-block; width:8px; height:8px; background:#ffffff; border-radius:50%; margin-right:6px; box-shadow: 0 0 4px #ffffff;"></span> FUNCIONES</div>
+                    <div onclick="focusLayer(4, 'DEV TOOLS')" style="display: flex; align-items: center; cursor: pointer;" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1"><span style="display:inline-block; width:8px; height:8px; background:#ffea00; border-radius:50%; margin-right:6px; box-shadow: 0 0 4px #ffea00;"></span> DEV TOOLS</div>
                     <div style="display: flex; align-items: center; margin-top: 4px; border-top: 1px solid #1f2937; padding-top: 4px;"><span style="display:inline-block; width:8px; height:2px; background:#00ffff; margin-right:6px; box-shadow: 0 0 4px #00ffff;"></span> CONEXIÓN CORE</div>
                     <div style="display: flex; align-items: center;"><span style="display:inline-block; width:4px; height:4px; background:#fff; border-radius:50%; margin-right:8px; margin-left:2px; box-shadow: 0 0 6px #fff;"></span> DATOS EN VIVO</div>
                 `;
@@ -843,6 +894,9 @@ function startChat() {
     addMessage(`¡Hola <strong>${vendedor_id}</strong>! Soy <strong>Axel</strong>, el bot de desarrollo de <strong>${knownBotName}</strong>. 
     Estoy sincronizado con los últimos commits del día y las bases de datos de Supabase. 
     Puedes elegir cualquier módulo en la barra lateral o hacer preguntas. ¿En qué te puedo ayudar hoy?`, false);
+    
+    // Render initial suggestions
+    updateChatSuggestions(currentTopic);
 }
 
 // Change username profile name via prompt
