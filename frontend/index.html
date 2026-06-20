@@ -591,12 +591,20 @@
                         <p>Enfoque: <span id="chat-topic">General</span></p>
                     </div>
                 </div>
-                <button id="new-chat-btn">＋ Limpiar</button>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button id="skills-btn" onclick="toggleSkillsModal()" style="background: #8b5cf6; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; cursor: pointer;">⚡ Skills</button>
+                    <button id="new-chat-btn">＋ Limpiar</button>
+                </div>
             </div>
             
             <div id="chat-history"></div>
             
-            <div id="chat-suggestions" class="chat-suggestions"></div>
+            <div class="chat-suggestions-wrapper" style="display: flex; align-items: center; background: #fff; border-top: 1px solid #e1e4e8;">
+                <button class="scroll-btn left-scroll" onclick="scrollSuggestions(-150)" style="border: none; background: transparent; cursor: pointer; padding: 5px 10px; color: #64748b;">◀</button>
+                <div id="chat-suggestions" class="chat-suggestions" style="scroll-behavior: smooth; flex: 1;"></div>
+                <button class="scroll-btn right-scroll" onclick="scrollSuggestions(150)" style="border: none; background: transparent; cursor: pointer; padding: 5px 10px; color: #64748b;">▶</button>
+            </div>
 
             <div id="chat-input-area">
                 <form id="chat-form">
@@ -641,7 +649,90 @@
             background: #0366d6;
             color: #fff;
         }
+        
+        /* SKILLS MODAL STYLES */
+        .skills-modal {
+            display: none; position: absolute; bottom: 80px; right: 20px; width: 380px; max-height: 500px;
+            background: #fff; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            z-index: 1000; overflow-y: auto; border: 1px solid #e2e8f0;
+        }
+        .skills-modal-header {
+            padding: 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;
+            border-top-left-radius: 12px; border-top-right-radius: 12px; position: sticky; top: 0;
+        }
+        .skills-modal-header h3 { margin: 0; font-size: 1rem; color: #334155; }
+        .skills-modal-close { background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: #94a3b8; }
+        .skills-category { padding: 15px; border-bottom: 1px solid #f1f5f9; }
+        .skills-category h4 { margin: 0 0 10px 0; font-size: 0.85rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+        .skill-item {
+            display: block; width: 100%; text-align: left; padding: 8px 12px; background: #f8fafc; border: 1px solid #e2e8f0;
+            border-radius: 6px; margin-bottom: 6px; cursor: pointer; font-size: 0.8rem; color: #334155; transition: all 0.2s;
+        }
+        .skill-item:hover { background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; transform: translateX(2px); }
     </style>
+
+    <!-- SKILLS MODAL -->
+    <div id="skills-modal" class="skills-modal">
+        <div class="skills-modal-header">
+            <h3>⚡ Centro de Skills (31+)</h3>
+            <button class="skills-modal-close" onclick="toggleSkillsModal()">×</button>
+        </div>
+        
+        <div class="skills-category">
+            <h4>🤖 Inteligencia y Análisis</h4>
+            <button class="skill-item" onclick="triggerSkill('Auditoría de Nodos', 'Analiza anomalías en la estructura del Mapa Neuronal 3D y dame un reporte de seguridad.')">1. Auditoría de Nodos Neuronal</button>
+            <button class="skill-item" onclick="triggerSkill('Explicar Topología', 'Describe la arquitectura de red actual del sistema y sus conexiones de forma técnica.')">2. Explicar Topología del Sistema</button>
+            <button class="skill-item" onclick="triggerSkill('Resumir Bóveda', 'Lee las notas Markdown de la Bóveda Obsidian y extrae los 5 conceptos operativos clave.')">3. Resumir Conocimientos (Obsidian)</button>
+            <button class="skill-item" onclick="triggerSkill('Análisis de Sentimiento', 'Evalúa la actitud general de los clientes basándote en los últimos tickets generados.')">4. Análisis de Sentimiento de Clientes</button>
+            <button class="skill-item" onclick="triggerSkill('Predicción de Fuga', 'Calcula el riesgo de fuga (Churn) de nuestros clientes activos.')">5. Predicción de Fuga (Churn Rate)</button>
+            <button class="skill-item" onclick="triggerSkill('SQL Inteligente', 'Actúa como DBA. Interpreta mi siguiente consulta a SQL optimizado.')">6. Intérprete SQL Inteligente</button>
+        </div>
+        
+        <div class="skills-category">
+            <h4>🛠️ Operaciones y Servidor</h4>
+            <button class="skill-item" onclick="triggerSkill('Auditar Logs', 'Revisa los logs del servidor para buscar errores crónicos o cuellos de botella.')">7. Auditar Logs del Servidor</button>
+            <button class="skill-item" onclick="triggerSkill('Simular Deploy', 'Simula un empaquetado de código y revisa dependencias antes de hacer Push a GitHub.')">8. Simular Deploy a GitHub</button>
+            <button class="skill-item" onclick="triggerSkill('Limpiar Temporales', 'Genera un script para limpiar la caché de V8 y liberar memoria RAM del servidor Node.js.')">9. Limpiar Memoria Temporal</button>
+            <button class="skill-item" onclick="triggerSkill('Desfragmentar BD', 'Analiza los índices de las bases de datos y propone una optimización SQL.')">10. Optimizar y Desfragmentar BD</button>
+            <button class="skill-item" onclick="triggerSkill('Status Respaldos', 'Verifica el estado de las copias de seguridad de Supabase y MySQL local.')">11. Estado de Respaldos (Backups)</button>
+        </div>
+
+        <div class="skills-category">
+            <h4>👨‍💻 Programación y Productividad</h4>
+            <button class="skill-item" onclick="triggerSkill('Evaluar Rendimiento', 'Audita el ritmo de commits del equipo y evalúa el desempeño semanal.')">12. Evaluar Rendimiento del Equipo</button>
+            <button class="skill-item" onclick="triggerSkill('Changelog Reciente', 'Resume los commits de las últimas 48 horas como si fuera un Changelog oficial.')">13. Generar Changelog Reciente</button>
+            <button class="skill-item" onclick="triggerSkill('Auditar Código Subido', 'Busca potenciales vulnerabilidades de seguridad en el último push realizado.')">14. Auditar Seguridad de Código</button>
+            <button class="skill-item" onclick="triggerSkill('Buscar Dependencias Rotas', 'Encuentra archivos huérfanos o enlaces rotos dentro de la arquitectura.')">15. Mapear Dependencias Rotas</button>
+            <button class="skill-item" onclick="triggerSkill('Documentar API', 'Genera documentación técnica para el endpoint seleccionado.')">16. Auto-Documentar API</button>
+        </div>
+
+        <div class="skills-category">
+            <h4>💰 Finanzas y Comercio</h4>
+            <button class="skill-item" onclick="triggerSkill('Sincronización Supabase', 'Fuerza una lectura masiva desde Supabase para verificar discrepancias de precios.')">17. Auditoría de Precios en Nube</button>
+            <button class="skill-item" onclick="triggerSkill('Optimizar Precios', 'Compara los márgenes actuales y sugiere ajustes basados en inflación teórica.')">18. Sugerir Optimización de Precios</button>
+            <button class="skill-item" onclick="triggerSkill('Predicción de Ventas', 'Proyecta el cierre contable a final de mes asumiendo la tendencia actual.')">19. Predecir Cierre de Ventas</button>
+            <button class="skill-item" onclick="triggerSkill('Cuadrar Caja', 'Revisa el balance general buscando discrepancias en los registros de ingresos.')">20. Análisis de Cuadre de Caja</button>
+            <button class="skill-item" onclick="triggerSkill('Conciliación Bancaria', 'Coteja bases de datos internas con movimientos bancarios esperados.')">21. Conciliación Bancaria IA</button>
+        </div>
+
+        <div class="skills-category">
+            <h4>📦 Inventario y Logística</h4>
+            <button class="skill-item" onclick="triggerSkill('Detectar Faltantes', 'Filtra y alerta sobre productos cuyo stock está por debajo del umbral crítico.')">22. Alerta de Stock Crítico</button>
+            <button class="skill-item" onclick="triggerSkill('Predecir Quiebre', 'Calcula en cuántos días se agotará el inventario basándose en el flujo de salida.')">23. Predecir Quiebre de Stock</button>
+            <button class="skill-item" onclick="triggerSkill('Alerta de Caducidad', 'Escanea productos de inventario próximos a vencer en los próximos 30 días.')">24. Alerta de Caducidades</button>
+            <button class="skill-item" onclick="triggerSkill('Evaluar Proveedores', 'Revisa los tiempos de entrega promedio para evaluar la fiabilidad de proveedores.')">25. Evaluación de Proveedores</button>
+            <button class="skill-item" onclick="triggerSkill('Balancear Bodegas', 'Sugiere traslados de inventario desde sucursales con baja demanda a alta demanda.')">26. Sugerir Balanceo de Bodegas</button>
+        </div>
+
+        <div class="skills-category">
+            <h4>👥 RRHH y Administración</h4>
+            <button class="skill-item" onclick="triggerSkill('Auditar Accesos', 'Revisa todos los roles de administrador y alerta de posibles escaladas de privilegios.')">27. Auditar Accesos y Seguridad</button>
+            <button class="skill-item" onclick="triggerSkill('Módulos Inactivos', 'Analiza qué secciones de la plataforma de Softres tienen menor engagement.')">28. Detectar Módulos Inactivos</button>
+            <button class="skill-item" onclick="triggerSkill('Desempeño RRHH', 'Cruza las métricas de asistencia vs la productividad generada por cada empleado.')">29. Analizar Desempeño Operativo</button>
+            <button class="skill-item" onclick="triggerSkill('Reporte Gerencial', 'Compila el estado de las finanzas, operativas y sistemas en un resumen ejecutivo PDF.')">30. Generar Reporte Gerencial</button>
+            <button class="skill-item" onclick="triggerSkill('Tutorial Interactivo', 'Actúa como asistente virtual y enséñame a usar el sistema paso a paso.')">31. Iniciar Tutorial Interactivo</button>
+        </div>
+    </div>
 
     <script src="soft3_v2.js"></script>
 </body>

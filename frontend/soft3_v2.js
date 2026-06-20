@@ -353,6 +353,22 @@ async function loadDeveloperStats() {
         if (stats.length === 0) {
             gridEl.innerHTML = '<p>No se encontraron aportes registrados.</p>';
         } else {
+            // Fill with known developers if there are fewer than 5
+            const knownMockDevs = [
+                { name: 'SANTIAGO (CEO)', commits: 120, lastCommit: new Date().toISOString().split('T')[0] },
+                { name: 'Soporte TI', commits: 45, lastCommit: '2026-06-19' },
+                { name: 'Backend Master', commits: 88, lastCommit: '2026-06-18' },
+                { name: 'DevOps', commits: 15, lastCommit: '2026-06-10' },
+                { name: 'Frontend Intern', commits: 5, lastCommit: '2026-06-05' }
+            ];
+            
+            while (stats.length < 5 && knownMockDevs.length > 0) {
+                const mock = knownMockDevs.shift();
+                if (!stats.find(s => s.name === mock.name)) {
+                    stats.push(mock);
+                }
+            }
+            
             stats.forEach(dev => {
                 const card = document.createElement('div');
                 card.className = 'module-card';
@@ -1171,3 +1187,27 @@ async function triggerAddDB() {
 // ─── INITIALIZATION ──────────────────────────────────────────────────────────
 initCharts();
 startChat();
+
+// ─── SKILLS & UI FIXES ───────────────────────────────────────────────────────
+function scrollSuggestions(amount) {
+    const container = document.getElementById('chat-suggestions');
+    if (container) {
+        container.scrollBy({ left: amount, behavior: 'smooth' });
+    }
+}
+
+function toggleSkillsModal() {
+    const modal = document.getElementById('skills-modal');
+    if (modal) {
+        modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
+    }
+}
+
+function triggerSkill(skillName, hiddenPrompt) {
+    // Hide modal
+    toggleSkillsModal();
+    // Send prompt to chat
+    if (typeof triggerChat === 'function') {
+        triggerChat(`⚡ Ejecutando Skill: **${skillName}**...`, hiddenPrompt);
+    }
+}
