@@ -352,14 +352,10 @@ app.listen(PORT, () => {
 // --- GIT STATS ENDPOINTS ---
 app.get('/api/git/stats', async (req, res) => {
     try {
-        const { exec } = require('child_process');
-        // We use formatting %an (author name) and %ad (author date)
-        exec('git log --format="%an|%ad" --date=short', { cwd: path.join(__dirname, '..'), maxBuffer: 1024 * 1024 * 10 }, (error, stdout, stderr) => {
-            if (error) {
-                console.error('Git log error:', error);
-                return res.status(500).json({ error: error.message });
-            }
-            
+        const { execSync } = require('child_process');
+        try {
+            // Attempt 1: Local Git
+            const stdout = execSync('git log --format="%an|%ad" --date=short').toString();
             const lines = stdout.split('\n').filter(l => l.trim() !== '');
             const authorStats = {};
             
@@ -368,22 +364,36 @@ app.get('/api/git/stats', async (req, res) => {
                 if (parts.length >= 2) {
                     const author = parts[0].trim();
                     const date = parts[1].trim();
-                    
-                    if (!authorStats[author]) {
-                        authorStats[author] = { name: author, commits: 0, lastCommit: date };
-                    }
+                    if (!authorStats[author]) authorStats[author] = { name: author, commits: 0, lastCommit: date };
                     authorStats[author].commits += 1;
-                    // Log usually outputs newest first, so the first time we see the author, we capture the most recent date
-                    if (!authorStats[author].lastCommit) {
-                        authorStats[author].lastCommit = date;
-                    }
+                    if (!authorStats[author].lastCommit) authorStats[author].lastCommit = date;
                 }
             });
-            
             const statsArray = Object.values(authorStats).sort((a, b) => b.commits - a.commits);
-            res.json(statsArray);
-        });
+            return res.json(statsArray);
+        } catch (localGitError) {
+            // Attempt 2: Fallback to GitHub API (useful for Railway/Production)
+            console.log('Local git log failed, falling back to GitHub API...', localGitError.message);
+            const response = await fetch('https://api.github.com/repos/atomicgpt001-bot/BRAINSOFT3/commits?per_page=100');
+            if (!response.ok) throw new Error('GitHub API error: ' + response.statusText);
+            const commits = await response.json();
+            
+            const authorStats = {};
+            commits.forEach(c => {
+                if (!c.commit || !c.commit.author) return;
+                const author = c.commit.author.name;
+                const date = c.commit.author.date.split('T')[0];
+                if (!authorStats[author]) authorStats[author] = { name: author, commits: 0, lastCommit: date };
+                authorStats[author].commits += 1;
+                if (!authorStats[author].lastCommit || new Date(date) > new Date(authorStats[author].lastCommit)) {
+                    authorStats[author].lastCommit = date;
+                }
+            });
+            const statsArray = Object.values(authorStats).sort((a, b) => b.commits - a.commits);
+            return res.json(statsArray);
+        }
     } catch (e) {
+        console.error(e);
         res.status(500).json({ error: e.message });
     }
 });
