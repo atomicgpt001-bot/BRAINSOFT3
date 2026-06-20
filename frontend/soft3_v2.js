@@ -530,102 +530,111 @@ function initGraph() {
     const elem2d = document.getElementById('neural-map-2d-container');
     if (!elem) return;
 
-    // Generamos la topología corporativa localmente
-    let gData = { nodes: [], links: [] };
-    
-    // NODO RAÍZ
-    gData.nodes.push({ id: 'EMPRESAS', label: 'EMPRESAS', group: 0, size: 25 });
-    
-    const empresas = [
-        { id: "TEN-001", label: "Ingeniería AB", group: 1 },
-        { id: "TEN-002", label: "Distribuidora", group: 1 },
-        { id: "TEN-003", label: "Softres Core", group: 1 }
-    ];
-    
-    empresas.forEach(emp => {
-        gData.nodes.push({ id: emp.id, label: emp.label, group: emp.group, size: 15 });
-        gData.links.push({ source: 'EMPRESAS', target: emp.id });
-        
-        ['Ventas', 'Reportes', 'Resumen'].forEach((mod, idx) => {
-            const modId = `${emp.id}_${mod}`;
-            gData.nodes.push({ id: modId, label: mod, group: 2, size: 10 });
-            gData.links.push({ source: emp.id, target: modId });
-        });
-    });
-
-    const w = elem.clientWidth  || 600;
-    const h = elem.clientHeight || 450;
-
-    if (!Graph) {
-        Graph = ForceGraph3D()(elem)
-            .width(w)
-            .height(h)
-            .backgroundColor('#0d1117')
-            .graphData(gData)
-            .nodeLabel('label')
-            .nodeColor(node => node.group === 5 ? '#ff00ff' : (node.id === 'EMPRESAS' ? '#ffffff' : (GROUP_COLORS[node.group] || '#8b949e')))
-            .nodeRelSize(5.5)
-            .nodeVal(node => node.size || 4)
-            .linkColor(() => '#30363d')
-            .linkOpacity(0.55)
-            .onNodeClick(node => {
-                updateChatFocus(node.label);
-                const dist = 70;
-                const ratio = 1 + dist / Math.hypot(node.x, node.y, node.z);
-                Graph.cameraPosition(
-                    { x: node.x * ratio, y: node.y * ratio, z: node.z * ratio },
-                    node,
-                    800
-                );
+    fetch('/api/graph')
+        .then(r => r.json())
+        .then(apiData => {
+            let gData = apiData || { nodes: [], links: [] };
+            
+            // Generamos la topología corporativa localmente y la anexamos
+            gData.nodes.push({ id: 'EMPRESAS', label: 'EMPRESAS', group: 0, size: 25 });
+            
+            // Conectar la nueva topología al nodo central antiguo ("YO") si existe
+            if (gData.nodes.find(n => n.id === 'YO')) {
+                gData.links.push({ source: 'YO', target: 'EMPRESAS' });
+            }
+            
+            const empresas = [
+                { id: "TEN-001", label: "Ingeniería AB", group: 1 },
+                { id: "TEN-002", label: "Distribuidora", group: 1 },
+                { id: "TEN-003", label: "Softres Core", group: 1 }
+            ];
+            
+            empresas.forEach(emp => {
+                gData.nodes.push({ id: emp.id, label: emp.label, group: emp.group, size: 15 });
+                gData.links.push({ source: 'EMPRESAS', target: emp.id });
+                
+                ['Ventas', 'Reportes', 'Resumen'].forEach((mod, idx) => {
+                    const modId = `${emp.id}_${mod}`;
+                    gData.nodes.push({ id: modId, label: mod, group: 2, size: 10 });
+                    gData.links.push({ source: emp.id, target: modId });
+                });
             });
 
-        // Initialize 2D B&W Graph if container exists
-        if (elem2d && typeof ForceGraph !== 'undefined') {
-            window.Graph2D = ForceGraph()(elem2d)
-                .graphData(gData)
-                .nodeId('id')
-                .nodeLabel('label')
-                .nodeColor(() => '#555555')
-                .linkColor(() => '#cccccc')
-                .backgroundColor('#f9f9f9');
-        }
+            const w = elem.clientWidth  || 600;
+            const h = elem.clientHeight || 450;
 
-        // Keep graph sized to its container on resize
-        const ro = new ResizeObserver(() => {
-            if (Graph && elem.clientWidth > 0) {
-                Graph.width(elem.clientWidth).height(elem.clientHeight);
-            }
-            if (window.Graph2D && elem2d && elem2d.clientWidth > 0) {
-                window.Graph2D.width(elem2d.clientWidth).height(elem2d.clientHeight);
-            }
-        });
-        ro.observe(elem);
-        if (elem2d) ro.observe(elem2d);
-        
-        // Simular movimientos en vivo
-        setInterval(() => {
-            if (gData.nodes.length > 80) return;
-            const targetEmpresa = empresas[Math.floor(Math.random() * empresas.length)].id;
-            const moveId = `mov_${Date.now()}`;
-            
-            gData.nodes.push({ id: moveId, label: 'Nuevo Registro', group: 5, size: 4 });
-            gData.links.push({ source: targetEmpresa, target: moveId });
-            
-            Graph.graphData(gData);
-            if (window.Graph2D) window.Graph2D.graphData(gData);
-            
-            setTimeout(() => {
-                gData.nodes = gData.nodes.filter(n => n.id !== moveId);
-                gData.links = gData.links.filter(l => l.target.id !== moveId && l.target !== moveId);
+            if (!Graph) {
+                Graph = ForceGraph3D()(elem)
+                    .width(w)
+                    .height(h)
+                    .backgroundColor('#0d1117')
+                    .graphData(gData)
+                    .nodeLabel('label')
+                    .nodeColor(node => node.group === 5 ? '#ff00ff' : (node.id === 'EMPRESAS' ? '#ffffff' : (GROUP_COLORS[node.group] || '#8b949e')))
+                    .nodeRelSize(5.5)
+                    .nodeVal(node => node.size || 4)
+                    .linkColor(() => '#30363d')
+                    .linkOpacity(0.55)
+                    .onNodeClick(node => {
+                        updateChatFocus(node.label);
+                        const dist = 70;
+                        const ratio = 1 + dist / Math.hypot(node.x, node.y, node.z);
+                        Graph.cameraPosition(
+                            { x: node.x * ratio, y: node.y * ratio, z: node.z * ratio },
+                            node,
+                            800
+                        );
+                    });
+
+                // Initialize 2D B&W Graph if container exists
+                if (elem2d && typeof ForceGraph !== 'undefined') {
+                    window.Graph2D = ForceGraph()(elem2d)
+                        .graphData(gData)
+                        .nodeId('id')
+                        .nodeLabel('label')
+                        .nodeColor(() => '#555555')
+                        .linkColor(() => '#cccccc')
+                        .backgroundColor('#f9f9f9');
+                }
+
+                // Keep graph sized to its container on resize
+                const ro = new ResizeObserver(() => {
+                    if (Graph && elem.clientWidth > 0) {
+                        Graph.width(elem.clientWidth).height(elem.clientHeight);
+                    }
+                    if (window.Graph2D && elem2d && elem2d.clientWidth > 0) {
+                        window.Graph2D.width(elem2d.clientWidth).height(elem2d.clientHeight);
+                    }
+                });
+                ro.observe(elem);
+                if (elem2d) ro.observe(elem2d);
+                
+                // Simular movimientos en vivo
+                setInterval(() => {
+                    if (gData.nodes.length > 200) return; // Prevent infinite growth
+                    const targetEmpresa = empresas[Math.floor(Math.random() * empresas.length)].id;
+                    const moveId = `mov_${Date.now()}`;
+                    
+                    gData.nodes.push({ id: moveId, label: 'Nuevo Registro', group: 5, size: 4 });
+                    gData.links.push({ source: targetEmpresa, target: moveId });
+                    
+                    Graph.graphData(gData);
+                    if (window.Graph2D) window.Graph2D.graphData(gData);
+                    
+                    setTimeout(() => {
+                        gData.nodes = gData.nodes.filter(n => n.id !== moveId);
+                        gData.links = gData.links.filter(l => l.target.id !== moveId && l.target !== moveId);
+                        Graph.graphData(gData);
+                        if (window.Graph2D) window.Graph2D.graphData(gData);
+                    }, 8000);
+                }, 4500);
+
+            } else {
                 Graph.graphData(gData);
                 if (window.Graph2D) window.Graph2D.graphData(gData);
-            }, 8000);
-        }, 4500);
-
-    } else {
-        Graph.graphData(gData);
-        if (window.Graph2D) window.Graph2D.graphData(gData);
-    }
+            }
+        })
+        .catch(err => console.error('[Graph] Error:', err));
 }
 
 // ─── CHAT IA (CEREBRO SOFT 3) ────────────────────────────────────────────────
