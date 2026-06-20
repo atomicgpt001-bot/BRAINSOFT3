@@ -605,33 +605,40 @@ function initGraph() {
             }
             // === FIN GENERADOR MASIVO ===
 
-            // INYECTAR LEYENDA (ÍNDICE DE COLORES)
-            if (!document.getElementById('graph-legend')) {
+            // INYECTAR LEYENDA COMPACTA (ÍNDICE DE COLORES)
+            if (!document.getElementById('neural-legend-overlay')) {
                 const legend = document.createElement('div');
-                legend.id = 'graph-legend';
+                legend.id = 'neural-legend-overlay';
                 legend.style.position = 'absolute';
-                legend.style.top = '20px';
-                legend.style.right = '20px';
-                legend.style.background = 'rgba(4, 7, 10, 0.7)';
+                legend.style.top = '10px';
+                legend.style.right = '10px';
+                legend.style.background = 'rgba(4, 7, 10, 0.85)';
                 legend.style.border = '1px solid #1f2937';
-                legend.style.borderRadius = '8px';
-                legend.style.padding = '15px';
+                legend.style.borderRadius = '6px';
+                legend.style.padding = '8px 12px';
                 legend.style.color = '#fff';
                 legend.style.fontFamily = 'monospace';
-                legend.style.fontSize = '0.75rem';
+                legend.style.fontSize = '0.65rem';
                 legend.style.pointerEvents = 'none'; // No bloquear clicks
                 legend.style.zIndex = '1000';
                 legend.style.backdropFilter = 'blur(4px)';
+                legend.style.display = 'flex';
+                legend.style.flexDirection = 'column';
+                legend.style.gap = '4px';
+                legend.style.width = 'fit-content';
+                legend.style.boxShadow = '0 4px 6px rgba(0,0,0,0.5)';
 
                 legend.innerHTML = `
-                    <h4 style="margin: 0 0 10px 0; color: #00ffff; text-align: center;">ÍNDICE NEURAL</h4>
-                    <div style="display: flex; align-items: center; margin-bottom: 5px;"><span style="display:inline-block; width:10px; height:10px; background:#00ffff; border-radius:50%; margin-right:8px; box-shadow: 0 0 5px #00ffff;"></span> NÚCLEO CORE</div>
-                    <div style="display: flex; align-items: center; margin-bottom: 5px;"><span style="display:inline-block; width:10px; height:10px; background:#ff0055; border-radius:50%; margin-right:8px; box-shadow: 0 0 5px #ff0055;"></span> EMPRESA ACTIVA</div>
-                    <div style="display: flex; align-items: center; margin-bottom: 5px;"><span style="display:inline-block; width:10px; height:10px; background:#ff3300; border-radius:50%; margin-right:8px; box-shadow: 0 0 5px #ff3300;"></span> EMPRESA INACTIVA</div>
-                    <div style="display: flex; align-items: center; margin-bottom: 5px;"><span style="display:inline-block; width:10px; height:10px; background:#0088ff; border-radius:50%; margin-right:8px; box-shadow: 0 0 5px #0088ff;"></span> USUARIOS</div>
-                    <div style="display: flex; align-items: center; margin-bottom: 5px;"><span style="display:inline-block; width:10px; height:10px; background:#00ff44; border-radius:50%; margin-right:8px; box-shadow: 0 0 5px #00ff44;"></span> MÓDULOS</div>
-                    <div style="display: flex; align-items: center; margin-bottom: 5px;"><span style="display:inline-block; width:10px; height:10px; background:#ffffff; border-radius:50%; margin-right:8px; box-shadow: 0 0 5px #ffffff;"></span> FUNCIONES (PERMISOS)</div>
-                    <div style="display: flex; align-items: center; margin-bottom: 5px;"><span style="display:inline-block; width:10px; height:10px; background:#ffea00; border-radius:50%; margin-right:8px; box-shadow: 0 0 5px #ffea00;"></span> DEV TOOLS</div>
+                    <div style="color: #00ffff; font-weight: bold; text-align: center; margin-bottom: 4px; border-bottom: 1px solid #1f2937; padding-bottom: 4px;">ÍNDICE NEURAL</div>
+                    <div style="display: flex; align-items: center;"><span style="display:inline-block; width:8px; height:8px; background:#00ffff; border-radius:50%; margin-right:6px; box-shadow: 0 0 4px #00ffff;"></span> NÚCLEO CORE</div>
+                    <div style="display: flex; align-items: center;"><span style="display:inline-block; width:8px; height:8px; background:#ff0055; border-radius:50%; margin-right:6px; box-shadow: 0 0 4px #ff0055;"></span> EMPRESA ACTIVA</div>
+                    <div style="display: flex; align-items: center;"><span style="display:inline-block; width:8px; height:8px; background:#ff3300; border-radius:50%; margin-right:6px; box-shadow: 0 0 4px #ff3300;"></span> EMPRESA INACTIVA</div>
+                    <div style="display: flex; align-items: center;"><span style="display:inline-block; width:8px; height:8px; background:#0088ff; border-radius:50%; margin-right:6px; box-shadow: 0 0 4px #0088ff;"></span> USUARIOS</div>
+                    <div style="display: flex; align-items: center;"><span style="display:inline-block; width:8px; height:8px; background:#00ff44; border-radius:50%; margin-right:6px; box-shadow: 0 0 4px #00ff44;"></span> MÓDULOS</div>
+                    <div style="display: flex; align-items: center;"><span style="display:inline-block; width:8px; height:8px; background:#ffffff; border-radius:50%; margin-right:6px; box-shadow: 0 0 4px #ffffff;"></span> FUNCIONES</div>
+                    <div style="display: flex; align-items: center;"><span style="display:inline-block; width:8px; height:8px; background:#ffea00; border-radius:50%; margin-right:6px; box-shadow: 0 0 4px #ffea00;"></span> DEV TOOLS</div>
+                    <div style="display: flex; align-items: center; margin-top: 4px; border-top: 1px solid #1f2937; padding-top: 4px;"><span style="display:inline-block; width:8px; height:2px; background:#00ffff; margin-right:6px; box-shadow: 0 0 4px #00ffff;"></span> CONEXIÓN CORE</div>
+                    <div style="display: flex; align-items: center;"><span style="display:inline-block; width:4px; height:4px; background:#fff; border-radius:50%; margin-right:8px; margin-left:2px; box-shadow: 0 0 6px #fff;"></span> DATOS EN VIVO</div>
                 `;
                 elem.parentElement.style.position = 'relative';
                 elem.parentElement.appendChild(legend);
