@@ -228,82 +228,86 @@ function initCharts() {
     });
 }
 
-// ─── SIMULATED MODULES DATA ──────────────────────────────────────────────────
+// ─── SIMULATED MODULES DATA (3D DASHBOARD) ───────────────────────────────────
 function loadModuleDetails(name) {
     const titleEl = document.getElementById('module-detail-title');
     const subtitleEl = document.getElementById('module-detail-subtitle');
     const statsRow = document.getElementById('module-stats-row');
-    const tableHeader = document.getElementById('module-table-header');
-    const tableBody = document.getElementById('module-table-body');
+    const ticketsGrid = document.getElementById('module-tickets-grid');
+    const aiTextEl = document.getElementById('module-ai-text');
+    
+    // Store current module name for filters
+    window.currentActiveModule = name;
     
     titleEl.textContent = `Módulo: ${name}`;
-    subtitleEl.textContent = `Operaciones de ${name} sincronizadas en tiempo real`;
+    subtitleEl.textContent = `Panel de Control Analítico - ${name}`;
     
-    // Default mock stats and data rows
+    filterModuleData();
+}
+
+function filterModuleData() {
+    const name = window.currentActiveModule;
+    if (!name) return;
+    
+    const empFilter = document.getElementById('module-empresa-filter').value;
+    const usrFilter = document.getElementById('module-usuario-filter').value;
+    
+    const statsRow = document.getElementById('module-stats-row');
+    const ticketsGrid = document.getElementById('module-tickets-grid');
+    const aiTextEl = document.getElementById('module-ai-text');
+    
     let stats = [];
-    let headers = [];
-    let rows = [];
+    let tickets = [];
     
+    // Base data templates based on module
     if (name === 'Inventario') {
         stats = [
-            { label: 'Referencias en Stock', value: '1,240' },
-            { label: 'Alertas de Stock Bajo', value: '12', alert: true },
-            { label: 'Valor del Almacén', value: '$84,520' }
+            { label: 'Documentos (Ingresos/Egresos)', value: '1,240' },
+            { label: 'Operaciones de Ajuste', value: '12', alert: true },
+            { label: 'Uso en 24h', value: 'Alta' }
         ];
-        headers = ['ID', 'Código SKU', 'Producto', 'Categoría', 'Stock Físico', 'Precio Unitario'];
-        rows = [
-            ['1', 'INV-00234', 'Cafetera Espresso Premium', 'Línea Hogar', '45', '$220.00'],
-            ['2', 'INV-00109', 'Silla de Oficina Ergonómica', 'Mobiliario', '8', '$150.00'],
-            ['3', 'INV-00561', 'Pantalla Monitor 27" 4K', 'Electrónicos', '19', '$320.00'],
-            ['4', 'INV-00782', 'Juego Toallas Hotel Blancas', 'Hotelería', '150', '$25.00'],
-            ['5', 'INV-00445', 'Cerradura Inteligente WiFi', 'Seguridad', '3', '$180.00']
+        tickets = [
+            { usr: 'ATOMIC', emp: 'Softres Global S.A.', action: 'Ingreso de Mercadería (INV-00234)', time: 'Hace 10 min' },
+            { usr: 'Santiago', emp: 'Operaciones del Norte Ltda.', action: 'Ajuste de Stock (INV-00109)', time: 'Hace 45 min', alert: true },
+            { usr: 'Carlos', emp: 'Softres Global S.A.', action: 'Egreso por Venta (FAC-10023)', time: 'Hace 2 horas' }
         ];
     } else if (name === 'Ventas') {
         stats = [
-            { label: 'Facturado Hoy', value: '$12,450' },
-            { label: 'Cotizaciones Pendientes', value: '24' },
-            { label: 'Tasa de Conversión', value: '72%' }
+            { label: 'Facturas Emitidas', value: '145' },
+            { label: 'Cotizaciones Enviadas', value: '24' },
+            { label: 'Frecuencia de Uso', value: 'Muy Alta' }
         ];
-        headers = ['Nº Factura', 'Cliente', 'Fecha', 'Vendedor', 'Método Pago', 'Total Neto'];
-        rows = [
-            ['FAC-10023', 'Inversiones Omega S.A.', '11/06/2026', 'Santiago', 'Transferencia', '$3,400.00'],
-            ['FAC-10024', 'María Gómez Pérez', '11/06/2026', 'Carlos', 'Tarjeta Crédito', '$150.00'],
-            ['FAC-10025', 'Hotel Splendid', '11/06/2026', 'Santiago', 'Factura 30 días', '$6,200.00'],
-            ['FAC-10026', 'Juan Torres Díaz', '11/06/2026', 'Lucía', 'Efectivo', '$80.00'],
-            ['FAC-10027', 'Constructora Del Sol', '11/06/2026', 'Santiago', 'Transferencia', '$2,620.00']
-        ];
-    } else if (name === 'Empleados') {
-        stats = [
-            { label: 'Fichas Registradas', value: '85' },
-            { label: 'Presentes Hoy', value: '82' },
-            { label: 'Faltas / Permisos', value: '3', alert: true }
-        ];
-        headers = ['RUT/ID', 'Colaborador', 'Departamento', 'Rol / Cargo', 'Asistencia', 'Entrada'];
-        rows = [
-            ['EMP-01', 'Santiago Rivas', 'Ventas', 'Ejecutivo Senior', 'Presente', '08:02 AM'],
-            ['EMP-02', 'Marcela Saldivar', 'Administración', 'Sub-Gerente', 'Presente', '07:55 AM'],
-            ['EMP-03', 'Carlos Mendoza', 'Soporte', 'Soporte TI', 'Presente', '08:15 AM'],
-            ['EMP-04', 'Eduardo Parra', 'Bodega', 'Encargado Logística', 'Falta Autorizada', '-'],
-            ['EMP-05', 'Laura Sepúlveda', 'Contabilidad', 'Contador General', 'Presente', '08:00 AM']
+        tickets = [
+            { usr: 'Santiago', emp: 'Softres Global S.A.', action: 'Factura Emitida (FAC-10023)', time: 'Hace 2 min' },
+            { usr: 'Carlos', emp: 'Operaciones del Norte Ltda.', action: 'Cotización Creada (COT-992)', time: 'Hace 15 min' },
+            { usr: 'ATOMIC', emp: 'Softres Global S.A.', action: 'Factura Emitida (FAC-10025)', time: 'Hace 1 hora' }
         ];
     } else {
-        // Fallback simulated module data
         stats = [
             { label: 'Registros Procesados', value: '1,452' },
-            { label: 'Eventos Pendientes', value: '4' },
-            { label: 'Estado del Servicio', value: 'Operativo' }
+            { label: 'Acciones de Mantenimiento', value: '4' },
+            { label: 'Estado del Módulo', value: 'Operativo' }
         ];
-        headers = ['ID Registro', 'Detalle Operación', 'Fecha Sinc', 'Usuario', 'Estado'];
-        rows = [
-            ['REG-119', `Sincronización Módulo ${name}`, '11/06/2026 14:12', 'ATOMIC', 'Sincronizado'],
-            ['REG-118', 'Limpieza de caché local', '11/06/2026 12:00', 'Sistema', 'Completado'],
-            ['REG-117', 'Revisión periódica de consistencia', '11/06/2026 09:30', 'Admin', 'Completado'],
-            ['REG-116', 'Carga masiva de datos iniciales', '10/06/2026 18:22', 'ATOMIC', 'Sincronizado'],
-            ['REG-115', 'Ajuste de parámetros de control', '10/06/2026 11:10', 'Santiago', 'Completado']
+        tickets = [
+            { usr: 'Admin', emp: 'Todas las Empresas', action: `Sincronización Módulo ${name}`, time: 'Hace 5 min' },
+            { usr: 'Santiago', emp: 'Softres Global S.A.', action: 'Limpieza de caché local', time: 'Hace 30 min' },
+            { usr: 'ATOMIC', emp: 'Operaciones del Norte Ltda.', action: 'Revisión periódica de consistencia', time: 'Hace 1 hora' }
         ];
     }
     
-    // Inject stats
+    // Apply Filters locally
+    let filteredTickets = tickets;
+    if (empFilter !== 'todas') filteredTickets = filteredTickets.filter(t => t.emp === empFilter || t.emp === 'Todas las Empresas');
+    if (usrFilter !== 'todos') filteredTickets = filteredTickets.filter(t => t.usr === usrFilter || t.usr === 'Admin');
+    
+    // Generate AI Summary Text intelligently based on filtered data
+    let ticketCount = filteredTickets.length;
+    let userContext = usrFilter === 'todos' ? 'todos los usuarios' : `el usuario ${usrFilter}`;
+    let empContext = empFilter === 'todas' ? 'toda la empresa' : `la empresa seleccionada`;
+    
+    aiTextEl.textContent = `En las últimas 24 horas, se han registrado ${ticketCount * 14} documentos y operaciones relacionadas a ${name} por parte de ${userContext} en ${empContext}. El mayor pico de uso ha sido durante la mañana. El estado operativo es estable y no se detectan anomalías graves.`;
+    
+    // Render Stats
     statsRow.innerHTML = '';
     stats.forEach(st => {
         const card = document.createElement('div');
@@ -316,21 +320,37 @@ function loadModuleDetails(name) {
         statsRow.appendChild(card);
     });
     
-    // Inject Headers
-    tableHeader.innerHTML = `<tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>`;
-    
-    // Inject Body Rows
-    tableBody.innerHTML = '';
-    rows.forEach(r => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = r.map((tdText, idx) => {
-            if (idx === 0) return `<td style="font-weight:600; color:#2563eb;">${tdText}</td>`;
-            if (tdText.includes('⚠️') || tdText.includes('Falta')) return `<td><span class="badge-red">${tdText}</span></td>`;
-            if (tdText.includes('Presente') || tdText.includes('Sincronizado') || tdText.includes('OK')) return `<td><span class="badge-success">${tdText}</span></td>`;
-            return `<td>${tdText}</td>`;
-        }).join('');
-        tableBody.appendChild(tr);
-    });
+    // Render Tickets Grid
+    ticketsGrid.innerHTML = '';
+    if (filteredTickets.length === 0) {
+        ticketsGrid.innerHTML = '<p style="color:#64748b; font-style:italic;">No se encontraron operaciones con los filtros actuales.</p>';
+    } else {
+        filteredTickets.forEach(t => {
+            const card = document.createElement('div');
+            card.style.background = '#f8fafc';
+            card.style.border = `1px solid ${t.alert ? '#fca5a5' : '#e2e8f0'}`;
+            card.style.borderRadius = '8px';
+            card.style.padding = '15px';
+            card.innerHTML = `
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                    <span style="font-weight:bold; color: #334155;">👤 ${t.usr}</span>
+                    <span style="font-size:0.75rem; color: #64748b;">🕒 ${t.time}</span>
+                </div>
+                <p style="margin: 0 0 5px 0; font-size: 0.9rem; color: ${t.alert ? '#dc2626' : '#0369a1'};">${t.action}</p>
+                <span style="font-size:0.7rem; color: #94a3b8; text-transform: uppercase;">🏢 ${t.emp}</span>
+            `;
+            ticketsGrid.appendChild(card);
+        });
+    }
+}
+
+function triggerModuleAIAnalysis() {
+    const text = document.getElementById('module-ai-text').textContent;
+    const name = window.currentActiveModule;
+    const prompt = `Aquí tienes el reporte automático de 24h del módulo ${name}: "${text}". Actúa como un experto analista corporativo y hazme una auditoría profunda sobre estos datos. Dime qué sugieres que revisemos a continuación.`;
+    if (typeof triggerChat === 'function') {
+        triggerChat(`🧠 Solicitando análisis profundo de **${name}** a Cerebro Soft 3...`, prompt);
+    }
 }
 
 // ─── SUPABASE PRICES TABLE ───────────────────────────────────────────────────
