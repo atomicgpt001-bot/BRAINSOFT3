@@ -481,6 +481,59 @@
             
             <!-- 5. DETALLE DE MÓDULO (Páginas dinámicas para Administración, Empleados, etc.) -->
             <section id="page-module-details" class="content-page">
+                <div class="page-header">
+                    <div class="header-left">
+                        <h1 id="module-detail-title">Módulo del Sistema</h1>
+                        <p id="module-detail-subtitle">Operaciones del módulo</p>
+                    </div>
+                    <div class="header-right">
+                        <button class="btn-secondary" id="back-to-dashboard-btn">⬅ Volver a Vista Global</button>
+                    </div>
+                </div>
+                
+                <div class="module-dashboard-simulation">
+                    <!-- DIMENSIÓN 1: FILTROS -->
+                    <div style="display: flex; gap: 15px; margin-bottom: 20px; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                        <div style="flex: 1;">
+                            <label style="font-size: 0.8rem; color: #64748b; margin-bottom: 5px; display: block;">🏢 Empresa</label>
+                            <select id="module-empresa-filter" onchange="filterModuleData()" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                                <option value="todas">Todas las Empresas</option>
+                                <option value="Softres Global S.A.">Softres Global S.A.</option>
+                                <option value="Operaciones del Norte Ltda.">Operaciones del Norte Ltda.</option>
+                            </select>
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="font-size: 0.8rem; color: #64748b; margin-bottom: 5px; display: block;">👤 Usuario / Colaborador</label>
+                            <select id="module-usuario-filter" onchange="filterModuleData()" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                                <option value="todos">Todos los Usuarios</option>
+                                <option value="ATOMIC">ATOMIC (Vendedor)</option>
+                                <option value="Santiago">Santiago (CEO)</option>
+                                <option value="Carlos">Carlos (Ventas)</option>
+                                <option value="Admin">Admin (Sistema)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- DIMENSIÓN 2: RESUMEN INTELIGENTE IA (24 Horas) -->
+                    <div id="module-ai-summary" onclick="triggerModuleAIAnalysis()" style="background: linear-gradient(135deg, #f0f6fc 0%, #e0f2fe 100%); border: 1px solid #bae6fd; padding: 20px; border-radius: 8px; margin-bottom: 20px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.transform='scale(1.01)'; this.style.boxShadow='0 4px 12px rgba(2,132,199,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+                        <h4 style="margin: 0 0 10px 0; color: #0369a1; display: flex; align-items: center; gap: 8px;">
+                            <span>🧠</span> Resumen Inteligente IA (Últimas 24 Horas)
+                        </h4>
+                        <p id="module-ai-text" style="margin: 0; font-size: 0.9rem; color: #334155; line-height: 1.5;">Cargando resumen generativo...</p>
+                        <span style="display: block; text-align: right; font-size: 0.75rem; color: #0284c7; margin-top: 10px; font-weight: bold;">Haz clic aquí para auditar en el chat ↗</span>
+                    </div>
+
+                    <!-- DIMENSIÓN 3: ESTADÍSTICAS -->
+                    <div class="quick-stats-row" id="module-stats-row" style="margin-bottom: 20px;">
+                        <!-- Dynamic cards -->
+                    </div>
+                    
+                    <!-- DIMENSIÓN 3b: LOG DE OPERACIONES (TICKETS CARDS) -->
+                    <div class="module-table-wrapper">
+                        <h3 style="margin-bottom: 15px; color: #1e293b; font-size: 1.1rem;">Operaciones Recientes (Tickets)</h3>
+                        <div id="module-tickets-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px;">
+                            <!-- Injected by JS -->
+                        </div>
                     </div>
                 </div>
             </section>
