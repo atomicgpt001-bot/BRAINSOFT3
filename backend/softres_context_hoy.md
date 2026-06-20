@@ -33,3 +33,12 @@ Esta es la revisiÃ³n secuencial de **todos** los cambios y mejoras implementadas
 ---
 > [!TIP]
 > **Estado Actual:** Todos estos cambios son secuenciales, han sido respaldados en el repositorio (`git push origin main`) y se encuentran **activos en el servidor**. El cÃ³digo estÃ¡ optimizado, guardado y la plataforma se encuentra completamente alineada con el Ãºltimo video revisado.
+
+
+## Historial de Errores y Últimos Commits (Git Log)
+- **Caída de la Base de Datos:** El sistema tuvo 1 error fatal (Error 500) que duró aproximadamente 1 hora sin resolver. El motivo fue que la migración de 'banco_transacciones' intentaba crear una tabla que ya existía, tumbando todo el servidor.
+- **Resolución:** El error crítico fue resuelto por el programador externo **Alejandro García** hace 34 horas (18 de Junio a las 13:24), quien agregó una validación de existencia de tabla.
+- **Últimos Cambios:** 
+  - Autor: Alejandro García | Hace 34 horas | Mensaje: 'ajuste transaccion'
+  - Autor: atomicelectronics070-arch | Hace 33 horas | Mensaje: 'Implement Romulo's feedback for Entregas'
+  - Autor: atomicelectronics070-arch | Hace 29 horas | Mensaje: 'Implement Ticket PDF for Entregas'

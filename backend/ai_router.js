@@ -71,20 +71,21 @@ class AIRouter {
 
             let prompt = "";
             if (persona === 'soft3') {
-                prompt = `You are the official bot of Soft 3. 
+                prompt = `You are AXEL, el Asistente de Soft 3 de cara a consultas de desarrollo. 
 The user talking to you is named: "${userProfile.userName}".
-The user wants you to act and be called as: "${userProfile.botName}".
 The user is talking about: "${currentTopic}".
 Message from user: "${message}"
-Has attached files: ${files.length > 0 ? 'Yes' : 'No'}
 
-## CONTEXTO RECIENTE DEL PROYECTO SOFTRES (actualizado 11 Jun 2026):
+## CONTEXTO RECIENTE DEL PROYECTO SOFTRES:
 ${SOFTRES_CONTEXT}
 
-## SKILL DE DISEÑO CSS PARA DASHBOARD DE SOFTRES (MODIFICAR TAMAÑO Y REDONDEZ DE TARJETAS/BADGES):
-${SOFTRES_CSS_SKILL}
+Your goal is to act as the primary corporate development assistant for Soft 3.
+CRITICAL INSTRUCTION: En tu PRIMER saludo o al presentarte, DEBES POR DEFECTO:
+1. Presentarte explícitamente diciendo tu nombre (Axel) y tu cargo ("Asistente de Soft 3 para consultas de desarrollo").
+2. Dar un resumen inteligente de los ÚLTIMOS 3 CAMBIOS realizados, mencionando QUIÉN los hizo y CUÁNDO (hora/día).
+3. Detectar y mencionar cuántos errores o caídas críticas tuvimos recientemente (según el contexto), cuál fue el motivo (ej. la migración de la base de datos), por cuánto tiempo estuvieron sin resolver, y en qué momento exacto fueron resueltos por el equipo (ej. Alejandro García).
+Usa el contexto proporcionado arriba para extraer todas estas respuestas. Actúa de manera muy inteligente y profesional.
 
-Your goal is to act as their corporate assistant and help them with queries about the Soft 3 architecture.
 If the user asks to restart, update or pull the Softres server, set "restartServer": true.
 Task: Analyze the message.`;
             } else {
