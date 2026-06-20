@@ -644,7 +644,7 @@ function initGraph() {
                 Graph = ForceGraph3D()(elem)
                     .width(w)
                     .height(h)
-                    .backgroundColor('#04070a') // Deep dark realistic background
+                    .backgroundColor('#010203') // Deep darker realistic background
                     .graphData(gData)
                     .nodeLabel('label')
                     .nodeColor(node => node.group === 5 ? '#ff00ff' : (node.id === 'EMPRESAS' ? '#ffffff' : (GROUP_COLORS[node.group] || '#8b949e')))
@@ -666,9 +666,9 @@ function initGraph() {
                         if ((sourceId === 'YO' && targetId === 'EMPRESAS') || (sourceId === 'EMPRESAS' && targetId === 'YO')) return 3;
                         return 0.3; // Bordes más delgados
                     })
-                    .linkOpacity(0.2) // Opacidad mucho más baja
-                    .linkDirectionalParticles(2) // Corrientes Eléctricas vivas
-                    .linkDirectionalParticleWidth(1.2)
+                    .linkOpacity(0.5) // Opacidad mucho más fuerte
+                    .linkDirectionalParticles(3) // Corrientes Eléctricas vivas
+                    .linkDirectionalParticleWidth(2.5) // Luz más fuerte y ancha
                     .linkDirectionalParticleSpeed(d => (d.source === 'YO' || d.source.id === 'YO') ? 0.01 : 0.004)
                     .linkDirectionalParticleColor(link => {
                         const groupColor = GROUP_COLORS[link.target.group] || '#00ffff';
