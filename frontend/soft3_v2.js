@@ -515,14 +515,14 @@ async function summarizeVaultNode(topic, file) {
 // ─── 3D FORCE GRAPH ───────────────────────────────────────────────────────────
 let Graph;
 const GROUP_COLORS = {
-    0: '#00e5ff', // Núcleo (Cyan)
-    1: '#ff3366', // Softres root / Empresas (Hot Pink)
-    2: '#39d353', // Módulos Softres (Lime Green)
-    3: '#bc8cff', // Módulos Soft 3 (Purple)
-    4: '#e3b341', // Commits (Gold)
-    5: '#ff8c00', // Errores / Live (Orange)
-    6: '#79c0ff', // Bóveda folders (Light Blue)
-    7: '#adbac7', // Bóveda files (Grey)
+    0: '#00ffff', // Núcleo (Neon Cyan)
+    1: '#ff0055', // Softres root / Empresas Activas (Neon Pink)
+    2: '#00ff44', // Módulos Softres (Neon Green)
+    3: '#b700ff', // Módulos Soft 3 (Neon Purple)
+    4: '#ffea00', // Commits / Herramientas (Neon Gold)
+    5: '#ff3300', // Errores / Empresas Inactivas (Neon Orange)
+    6: '#0088ff', // Usuarios (Bright Blue)
+    7: '#ffffff', // Funciones (Pure White)
 };
 
 function initGraph() {
@@ -535,8 +535,8 @@ function initGraph() {
         .then(apiData => {
             let gData = apiData || { nodes: [], links: [] };
             // === GENERADOR DE AUDITORÍA MASIVA (SIMULACIÓN DE BASE DE DATOS) ===
-            // Nodo Raíz Central
-            gData.nodes.push({ id: 'EMPRESAS', label: 'NÚCLEO SOFTRES', group: 0, size: 40 });
+            // Nodo Raíz Central (Gordito, más pesado)
+            gData.nodes.push({ id: 'EMPRESAS', label: 'NÚCLEO SOFTRES', group: 0, size: 50 });
             
             if (gData.nodes.find(n => n.id === 'YO')) {
                 gData.links.push({ source: 'YO', target: 'EMPRESAS' });
@@ -576,7 +576,7 @@ function initGraph() {
                     const numUsers = Math.floor(Math.random() * 4) + 2;
                     for (let u = 1; u <= numUsers; u++) {
                         const userId = `${empId}_USR_${u}`;
-                        gData.nodes.push({ id: userId, label: `Usuario ${u}`, group: 6, size: 14 });
+                        gData.nodes.push({ id: userId, label: `Usuario ${u}`, group: 6, size: 10 });
                         gData.links.push({ source: empId, target: userId });
 
                         // 4. Generar Módulos por Usuario (3 a 6)
@@ -588,7 +588,7 @@ function initGraph() {
                             usedMods.push(modName);
                             
                             const modId = `${userId}_MOD_${m}`;
-                            gData.nodes.push({ id: modId, label: modName, group: 2, size: 10 });
+                            gData.nodes.push({ id: modId, label: modName, group: 2, size: 6 });
                             gData.links.push({ source: userId, target: modId });
 
                             // 5. Generar Funciones por Módulo (2 a 4)
@@ -596,7 +596,7 @@ function initGraph() {
                             for (let f = 1; f <= numFuncs; f++) {
                                 const funcName = funcNames[Math.floor(Math.random() * funcNames.length)];
                                 const funcId = `${modId}_FUNC_${f}`;
-                                gData.nodes.push({ id: funcId, label: funcName, group: 7, size: 5 });
+                                gData.nodes.push({ id: funcId, label: funcName, group: 7, size: 2 });
                                 gData.links.push({ source: modId, target: funcId });
                             }
                         }
@@ -605,6 +605,38 @@ function initGraph() {
             }
             // === FIN GENERADOR MASIVO ===
 
+            // INYECTAR LEYENDA (ÍNDICE DE COLORES)
+            if (!document.getElementById('graph-legend')) {
+                const legend = document.createElement('div');
+                legend.id = 'graph-legend';
+                legend.style.position = 'absolute';
+                legend.style.top = '20px';
+                legend.style.right = '20px';
+                legend.style.background = 'rgba(4, 7, 10, 0.7)';
+                legend.style.border = '1px solid #1f2937';
+                legend.style.borderRadius = '8px';
+                legend.style.padding = '15px';
+                legend.style.color = '#fff';
+                legend.style.fontFamily = 'monospace';
+                legend.style.fontSize = '0.75rem';
+                legend.style.pointerEvents = 'none'; // No bloquear clicks
+                legend.style.zIndex = '1000';
+                legend.style.backdropFilter = 'blur(4px)';
+
+                legend.innerHTML = `
+                    <h4 style="margin: 0 0 10px 0; color: #00ffff; text-align: center;">ÍNDICE NEURAL</h4>
+                    <div style="display: flex; align-items: center; margin-bottom: 5px;"><span style="display:inline-block; width:10px; height:10px; background:#00ffff; border-radius:50%; margin-right:8px; box-shadow: 0 0 5px #00ffff;"></span> NÚCLEO CORE</div>
+                    <div style="display: flex; align-items: center; margin-bottom: 5px;"><span style="display:inline-block; width:10px; height:10px; background:#ff0055; border-radius:50%; margin-right:8px; box-shadow: 0 0 5px #ff0055;"></span> EMPRESA ACTIVA</div>
+                    <div style="display: flex; align-items: center; margin-bottom: 5px;"><span style="display:inline-block; width:10px; height:10px; background:#ff3300; border-radius:50%; margin-right:8px; box-shadow: 0 0 5px #ff3300;"></span> EMPRESA INACTIVA</div>
+                    <div style="display: flex; align-items: center; margin-bottom: 5px;"><span style="display:inline-block; width:10px; height:10px; background:#0088ff; border-radius:50%; margin-right:8px; box-shadow: 0 0 5px #0088ff;"></span> USUARIOS</div>
+                    <div style="display: flex; align-items: center; margin-bottom: 5px;"><span style="display:inline-block; width:10px; height:10px; background:#00ff44; border-radius:50%; margin-right:8px; box-shadow: 0 0 5px #00ff44;"></span> MÓDULOS</div>
+                    <div style="display: flex; align-items: center; margin-bottom: 5px;"><span style="display:inline-block; width:10px; height:10px; background:#ffffff; border-radius:50%; margin-right:8px; box-shadow: 0 0 5px #ffffff;"></span> FUNCIONES (PERMISOS)</div>
+                    <div style="display: flex; align-items: center; margin-bottom: 5px;"><span style="display:inline-block; width:10px; height:10px; background:#ffea00; border-radius:50%; margin-right:8px; box-shadow: 0 0 5px #ffea00;"></span> DEV TOOLS</div>
+                `;
+                elem.parentElement.style.position = 'relative';
+                elem.parentElement.appendChild(legend);
+            }
+
             const w = elem.clientWidth  || 600;
             const h = elem.clientHeight || 450;
 
@@ -612,27 +644,36 @@ function initGraph() {
                 Graph = ForceGraph3D()(elem)
                     .width(w)
                     .height(h)
-                    .backgroundColor('#0d1117')
+                    .backgroundColor('#04070a') // Deep dark realistic background
                     .graphData(gData)
                     .nodeLabel('label')
                     .nodeColor(node => node.group === 5 ? '#ff00ff' : (node.id === 'EMPRESAS' ? '#ffffff' : (GROUP_COLORS[node.group] || '#8b949e')))
+                    .nodeResolution(32) // Smooth 4K Spheres
                     .nodeRelSize(5.5)
                     .nodeVal(node => node.size || 4)
                     .linkColor(link => {
                         const sourceId = link.source.id || link.source;
                         const targetId = link.target.id || link.target;
                         if ((sourceId === 'YO' && targetId === 'EMPRESAS') || (sourceId === 'EMPRESAS' && targetId === 'YO')) {
-                            return '#00ffcc'; // Glowing union
+                            return '#00ffff'; // Glowing union
                         }
-                        return '#30363d';
+                        const groupColor = GROUP_COLORS[link.target.group] || '#112233';
+                        return groupColor; // Enlaces adoptan color neón del destino
                     })
                     .linkWidth(link => {
                         const sourceId = link.source.id || link.source;
                         const targetId = link.target.id || link.target;
-                        if ((sourceId === 'YO' && targetId === 'EMPRESAS') || (sourceId === 'EMPRESAS' && targetId === 'YO')) return 4;
-                        return 1;
+                        if ((sourceId === 'YO' && targetId === 'EMPRESAS') || (sourceId === 'EMPRESAS' && targetId === 'YO')) return 3;
+                        return 0.3; // Bordes más delgados
                     })
-                    .linkOpacity(0.55)
+                    .linkOpacity(0.2) // Opacidad mucho más baja
+                    .linkDirectionalParticles(2) // Corrientes Eléctricas vivas
+                    .linkDirectionalParticleWidth(1.2)
+                    .linkDirectionalParticleSpeed(d => (d.source === 'YO' || d.source.id === 'YO') ? 0.01 : 0.004)
+                    .linkDirectionalParticleColor(link => {
+                        const groupColor = GROUP_COLORS[link.target.group] || '#00ffff';
+                        return groupColor; // Luz eléctrica toma color de nodo
+                    })
                     .onNodeClick(node => {
                         updateChatFocus(node.label);
                         const dist = 70;
