@@ -692,6 +692,21 @@ function initGraph() {
                             node,
                             800
                         );
+                        
+                        // Trigger AI Intelligent Analysis
+                        const contextMap = {
+                            0: 'Núcleo Central',
+                            1: 'Empresa Activa',
+                            2: 'Módulo del Sistema',
+                            4: 'Herramienta Core de Desarrollo',
+                            5: 'Empresa Inactiva',
+                            6: 'Usuario del Sistema',
+                            7: 'Función de Permisos'
+                        };
+                        const nodeType = contextMap[node.group] || 'Nodo de Datos';
+                        const prompt = `Acabo de hacer clic en el nodo "${node.label}" (Tipo de elemento: ${nodeType}). Háblame de forma breve e inteligente sobre este nodo en particular. ¿Qué significa, para qué sirve dentro de esta gigantesca topología neuronal que estamos viendo y qué acciones podría tomar sobre él? Compórtate como el asistente de desarrollo integrado a este sistema.`;
+                        
+                        triggerChat(prompt);
                     });
 
                 // Tighter and softer physics to keep nodes grouped
@@ -838,6 +853,11 @@ chatForm.addEventListener('submit', async (e) => {
 
     messageInput.value = '';
     messageInput.style.height = 'auto';
+    await triggerChat(text);
+});
+
+async function triggerChat(text) {
+    if (!text) return;
     addMessage(text, true);
 
     // Typing dot animation
