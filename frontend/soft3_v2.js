@@ -515,14 +515,14 @@ async function summarizeVaultNode(topic, file) {
 // ─── 3D FORCE GRAPH ───────────────────────────────────────────────────────────
 let Graph;
 const GROUP_COLORS = {
-    0: '#58a6ff', // Núcleo
-    1: '#3fb950', // Softres root
-    2: '#39d353', // Módulos Softres
-    3: '#bc8cff', // Módulos Soft 3
-    4: '#e3b341', // Commits
-    5: '#f78166', // Errores
-    6: '#79c0ff', // Bóveda folders
-    7: '#adbac7', // Bóveda files
+    0: '#00e5ff', // Núcleo (Cyan)
+    1: '#ff3366', // Softres root / Empresas (Hot Pink)
+    2: '#39d353', // Módulos Softres (Lime Green)
+    3: '#bc8cff', // Módulos Soft 3 (Purple)
+    4: '#e3b341', // Commits (Gold)
+    5: '#ff8c00', // Errores / Live (Orange)
+    6: '#79c0ff', // Bóveda folders (Light Blue)
+    7: '#adbac7', // Bóveda files (Grey)
 };
 
 function initGraph() {
@@ -573,7 +573,20 @@ function initGraph() {
                     .nodeColor(node => node.group === 5 ? '#ff00ff' : (node.id === 'EMPRESAS' ? '#ffffff' : (GROUP_COLORS[node.group] || '#8b949e')))
                     .nodeRelSize(5.5)
                     .nodeVal(node => node.size || 4)
-                    .linkColor(() => '#30363d')
+                    .linkColor(link => {
+                        const sourceId = link.source.id || link.source;
+                        const targetId = link.target.id || link.target;
+                        if ((sourceId === 'YO' && targetId === 'EMPRESAS') || (sourceId === 'EMPRESAS' && targetId === 'YO')) {
+                            return '#00ffcc'; // Glowing union
+                        }
+                        return '#30363d';
+                    })
+                    .linkWidth(link => {
+                        const sourceId = link.source.id || link.source;
+                        const targetId = link.target.id || link.target;
+                        if ((sourceId === 'YO' && targetId === 'EMPRESAS') || (sourceId === 'EMPRESAS' && targetId === 'YO')) return 4;
+                        return 1;
+                    })
                     .linkOpacity(0.55)
                     .onNodeClick(node => {
                         updateChatFocus(node.label);
@@ -585,6 +598,12 @@ function initGraph() {
                             800
                         );
                     });
+
+                // Tighter and softer physics to keep nodes grouped
+                Graph.d3Force('charge').strength(-200);
+                Graph.d3Force('link').distance(50);
+                Graph.d3Force('center', d3.forceCenter(0, 0, 0));
+                Graph.d3Force('collide', d3.forceCollide(node => node.size + 2));
 
                 // Initialize 2D B&W Graph if container exists
                 if (elem2d && typeof ForceGraph !== 'undefined') {
@@ -609,23 +628,29 @@ function initGraph() {
                 ro.observe(elem);
                 if (elem2d) ro.observe(elem2d);
                 
-                // Simular movimientos en vivo
+                // Simular movimientos en vivo de forma fluida
                 setInterval(() => {
                     if (gData.nodes.length > 200) return; // Prevent infinite growth
-                    const targetEmpresa = empresas[Math.floor(Math.random() * empresas.length)].id;
+                    const targetEmpresaId = empresas[Math.floor(Math.random() * empresas.length)].id;
+                    const targetNode = gData.nodes.find(n => n.id === targetEmpresaId);
                     const moveId = `mov_${Date.now()}`;
                     
-                    gData.nodes.push({ id: moveId, label: 'Nuevo Registro', group: 5, size: 4 });
-                    gData.links.push({ source: targetEmpresa, target: moveId });
+                    // Spawn inside the parent node to prevent violent physics jumps
+                    const startX = targetNode && targetNode.x !== undefined ? targetNode.x : 0;
+                    const startY = targetNode && targetNode.y !== undefined ? targetNode.y : 0;
+                    const startZ = targetNode && targetNode.z !== undefined ? targetNode.z : 0;
                     
-                    Graph.graphData(gData);
-                    if (window.Graph2D) window.Graph2D.graphData(gData);
+                    gData.nodes.push({ id: moveId, label: 'Nuevo Registro', group: 5, size: 4, x: startX, y: startY, z: startZ });
+                    gData.links.push({ source: targetEmpresaId, target: moveId });
+                    
+                    Graph.graphData({ nodes: [...gData.nodes], links: [...gData.links] });
+                    if (window.Graph2D) window.Graph2D.graphData({ nodes: [...gData.nodes], links: [...gData.links] });
                     
                     setTimeout(() => {
                         gData.nodes = gData.nodes.filter(n => n.id !== moveId);
                         gData.links = gData.links.filter(l => l.target.id !== moveId && l.target !== moveId);
-                        Graph.graphData(gData);
-                        if (window.Graph2D) window.Graph2D.graphData(gData);
+                        Graph.graphData({ nodes: [...gData.nodes], links: [...gData.links] });
+                        if (window.Graph2D) window.Graph2D.graphData({ nodes: [...gData.nodes], links: [...gData.links] });
                     }, 8000);
                 }, 4500);
 
