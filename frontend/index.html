@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cerebro Soft 3 — Panel de Control Premium</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
     <!-- Google Fonts: Inter & Outfit -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -121,186 +122,99 @@
                     </div>
                 </div>
                 
-                <!-- COLORFUL CARDS GRID (Reference 2 style) -->
-                <div class="modules-grid">
-                    <!-- Administración -->
-                    <div class="module-card card-orange" data-target="mod_administracion" data-module="Administración">
-                        <div class="card-accent">📁</div>
-                        <div class="card-body">
-                            <span class="card-category">PROCESOS</span>
-                            <h4 class="card-title">Administración</h4>
-                            <div class="card-row">
-                                <span class="card-badge bg-blue">14 Activos</span>
-                                <span class="card-badge bg-yellow">2 Alertas ⚠️</span>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Empleados -->
-                    <div class="module-card card-blue" data-target="mod_empleados" data-module="Empleados">
-                        <div class="card-accent">👤</div>
-                        <div class="card-body">
-                            <span class="card-category">PERSONAL</span>
-                            <h4 class="card-title">Empleados</h4>
-                            <div class="card-row">
-                                <span class="card-badge bg-blue">85 Fichas</span>
-                                <span class="card-badge bg-green">96% Pres.</span>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Inventario -->
-                    <div class="module-card card-teal" data-target="mod_inventario" data-module="Inventario">
-                        <div class="card-accent">🛒</div>
-                        <div class="card-body">
-                            <span class="card-category">STOCK</span>
-                            <h4 class="card-title">Inventario</h4>
-                            <div class="card-row">
-                                <span class="card-badge bg-blue">1,240 Refs</span>
-                                <span class="card-badge bg-red">12 Bajas ⚠️</span>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Proveedores -->
-                    <div class="module-card card-green" data-target="mod_proveedores" data-module="Proveedores">
-                        <div class="card-accent">🚚</div>
-                        <div class="card-body">
-                            <span class="card-category">CONTACTOS</span>
-                            <h4 class="card-title">Proveedores</h4>
-                            <div class="card-row">
-                                <span class="card-badge bg-blue">34 Activos</span>
-                                <span class="card-badge bg-green">5 Pendientes</span>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Compras -->
-                    <div class="module-card card-purple" data-target="mod_compras" data-module="Compras">
-                        <div class="card-accent">💳</div>
-                        <div class="card-body">
-                            <span class="card-category">EGRESOS</span>
-                            <h4 class="card-title">Compras</h4>
-                            <div class="card-row">
-                                <span class="card-badge bg-blue">18 Órdenes</span>
-                                <span class="card-badge bg-yellow">3 Aut. ⚠️</span>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Bodegas -->
-                    <div class="module-card card-indigo" data-target="mod_bodegas" data-module="Bodegas">
+                <!-- ADMIN/TENANT DASHBOARD -->
+                <div class="modules-grid admin-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+                    <!-- Empresas Totales -->
+                    <div class="module-card card-indigo" data-target="admin_empresas" data-module="Empresas SaaS">
                         <div class="card-accent">🏢</div>
                         <div class="card-body">
-                            <span class="card-category">ALMACÉN</span>
-                            <h4 class="card-title">Bodegas</h4>
+                            <span class="card-category">TENANTS SAAS</span>
+                            <h4 class="card-title">Empresas Activas</h4>
                             <div class="card-row">
-                                <span class="card-badge bg-blue">4 Activas</span>
-                                <span class="card-badge bg-green">78% Ocup.</span>
+                                <span class="card-badge bg-blue">24 Empresas</span>
+                                <span class="card-badge bg-green">100% Operativas</span>
                             </div>
                         </div>
                     </div>
-                    <!-- Ventas -->
-                    <div class="module-card card-rose" data-target="mod_ventas" data-module="Ventas">
-                        <div class="card-accent">📈</div>
+                    <!-- Salud del Sistema -->
+                    <div class="module-card card-teal" data-target="admin_health" data-module="Salud del Sistema">
+                        <div class="card-accent">⚡</div>
                         <div class="card-body">
-                            <span class="card-category">INGRESOS</span>
-                            <h4 class="card-title">Ventas</h4>
+                            <span class="card-category">INFRAESTRUCTURA</span>
+                            <h4 class="card-title">Núcleo Softres</h4>
                             <div class="card-row">
-                                <span class="card-badge bg-green">+$12.4K Hoy</span>
-                                <span class="card-badge bg-blue">24 Ctzs</span>
+                                <span class="card-badge bg-green">Servidor OK</span>
+                                <span class="card-badge bg-blue">API Activa</span>
                             </div>
                         </div>
                     </div>
-                    <!-- Hotelería -->
-                    <div class="module-card card-cyan" data-target="mod_hoteleria" data-module="Hotelería">
-                        <div class="card-accent">🛏️</div>
+                    <!-- Recursos BD -->
+                    <div class="module-card card-blue" data-target="admin_db" data-module="Base de Datos">
+                        <div class="card-accent">🗄️</div>
                         <div class="card-body">
-                            <span class="card-category">ESTADÍA</span>
-                            <h4 class="card-title">Hotelería</h4>
+                            <span class="card-category">RECURSOS</span>
+                            <h4 class="card-title">Uso de Almacenamiento</h4>
                             <div class="card-row">
-                                <span class="card-badge bg-blue">42 Hab. Occ</span>
-                                <span class="card-badge bg-green">8 Pend.</span>
+                                <span class="card-badge bg-blue">42 GB / 100 GB</span>
+                                <span class="card-badge bg-green">Saludable</span>
                             </div>
                         </div>
                     </div>
-                    <!-- Clientes -->
-                    <div class="module-card card-emerald" data-target="mod_clientes" data-module="Clientes">
-                        <div class="card-accent">👥</div>
-                        <div class="card-body">
-                            <span class="card-category">CLIENTES</span>
-                            <h4 class="card-title">Clientes</h4>
-                            <div class="card-row">
-                                <span class="card-badge bg-blue">512 Regs</span>
-                                <span class="card-badge bg-green">+15 Mes</span>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Consultas -->
-                    <div class="module-card card-amber" data-target="mod_consultas" data-module="Consultas">
-                        <div class="card-accent">🔍</div>
-                        <div class="card-body">
-                            <span class="card-category">BÚSQUEDAS</span>
-                            <h4 class="card-title">Consultas</h4>
-                            <div class="card-row">
-                                <span class="card-badge bg-blue">320 Rqs</span>
-                                <span class="card-badge bg-yellow">1 Lenta ⚠️</span>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Reportes -->
-                    <div class="module-card card-violet" data-target="mod_reportes" data-module="Reportes">
-                        <div class="card-accent">📊</div>
-                        <div class="card-body">
-                            <span class="card-category">DATOS</span>
-                            <h4 class="card-title">Reportes</h4>
-                            <div class="card-row">
-                                <span class="card-badge bg-blue">8 Prog.</span>
-                                <span class="card-badge bg-green">14 Desc.</span>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Contabilidad -->
-                    <div class="module-card card-slate" data-target="mod_contabilidad" data-module="Contabilidad">
-                        <div class="card-accent">🧮</div>
-                        <div class="card-body">
-                            <span class="card-category">FINANZAS</span>
-                            <h4 class="card-title">Contabilidad</h4>
-                            <div class="card-row">
-                                <span class="card-badge bg-green">Cuadrado</span>
-                                <span class="card-badge bg-yellow">4 Conc. ⚠️</span>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Bancos -->
-                    <div class="module-card card-red" data-target="mod_bancos" data-module="Gestión de Bancos">
-                        <div class="card-accent">🏛️</div>
-                        <div class="card-body">
-                            <span class="card-category">TESORERÍA</span>
-                            <h4 class="card-title">Gestión de Bancos</h4>
-                            <div class="card-row">
-                                <span class="card-badge bg-blue">6/8 Cuentas</span>
-                                <span class="card-badge bg-green">Saldos OK</span>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Utilerías -->
-                    <div class="module-card card-gray" data-target="mod_utilerias" data-module="Utilerías">
+                    <!-- Alertas/Soporte -->
+                    <div class="module-card card-orange" data-target="admin_alerts" data-module="Alertas del Sistema">
                         <div class="card-accent">🛠️</div>
                         <div class="card-body">
-                            <span class="card-category">SOPORTE</span>
-                            <h4 class="card-title">Utilerías</h4>
+                            <span class="card-category">INCIDENCIAS</span>
+                            <h4 class="card-title">Registro de Errores</h4>
                             <div class="card-row">
-                                <span class="card-badge bg-green">Backup OK</span>
-                                <span class="card-badge bg-yellow">Caché ⚠️</span>
+                                <span class="card-badge bg-green">1 Crítico (Resuelto)</span>
+                                <span class="card-badge bg-blue">0 Pendientes</span>
                             </div>
                         </div>
                     </div>
-                    <!-- Ayudas -->
-                    <div class="module-card card-lime" data-target="mod_ayudas" data-module="Ayudas">
-                        <div class="card-accent">💡</div>
-                        <div class="card-body">
-                            <span class="card-category">DOCUMENTACIÓN</span>
-                            <h4 class="card-title">Ayudas</h4>
-                            <div class="card-row">
-                                <span class="card-badge bg-blue">142 FAQs</span>
-                                <span class="card-badge bg-green">0 Tickets</span>
-                            </div>
+                </div>
+                
+                <!-- ADMINISTRATIVE ACTIONS TABLE -->
+                <div class="charts-section" style="margin-top: 30px;">
+                    <div class="chart-wrapper" style="width: 100%;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3>Gestión Rápida de Empresas (Administrador)</h3>
+                            <button class="btn-primary" style="background: var(--brand-blue); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 500; cursor: pointer;">+ Nueva Empresa</button>
+                        </div>
+                        <div class="table-container" style="overflow-x: auto;">
+                            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                                <thead>
+                                    <tr style="border-bottom: 1px solid rgba(0,0,0,0.1);">
+                                        <th style="padding: 12px; color: var(--text-muted); font-weight: 500; font-size: 0.9rem;">ID Tenant</th>
+                                        <th style="padding: 12px; color: var(--text-muted); font-weight: 500; font-size: 0.9rem;">Nombre Empresa</th>
+                                        <th style="padding: 12px; color: var(--text-muted); font-weight: 500; font-size: 0.9rem;">Estado</th>
+                                        <th style="padding: 12px; color: var(--text-muted); font-weight: 500; font-size: 0.9rem;">Renovación</th>
+                                        <th style="padding: 12px; color: var(--text-muted); font-weight: 500; font-size: 0.9rem;">Acciones Administrativas</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                        <td style="padding: 15px 12px; font-weight: 600; color: var(--text-main);">TEN-001</td>
+                                        <td style="padding: 15px 12px; color: var(--text-main);">Ingeniería y Construcciones AB</td>
+                                        <td style="padding: 15px 12px;"><span style="background: rgba(16,185,129,0.1); color: #10B981; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">ACTIVO</span></td>
+                                        <td style="padding: 15px 12px; color: var(--text-muted); font-size: 0.9rem;">12/Diciembre/2026</td>
+                                        <td style="padding: 15px 12px;">
+                                            <button style="background: rgba(59,130,246,0.1); color: var(--brand-blue); border: none; padding: 6px 12px; border-radius: 6px; font-weight: 500; font-size: 0.85rem; cursor: pointer; margin-right: 5px;">Modificar Límites</button>
+                                            <button style="background: rgba(239,68,68,0.1); color: #EF4444; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 500; font-size: 0.85rem; cursor: pointer;">Suspender</button>
+                                        </td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                        <td style="padding: 15px 12px; font-weight: 600; color: var(--text-main);">TEN-002</td>
+                                        <td style="padding: 15px 12px; color: var(--text-main);">Distribuidora Gómez CIA LTDA</td>
+                                        <td style="padding: 15px 12px;"><span style="background: rgba(16,185,129,0.1); color: #10B981; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">ACTIVO</span></td>
+                                        <td style="padding: 15px 12px; color: var(--text-muted); font-size: 0.9rem;">05/Septiembre/2026</td>
+                                        <td style="padding: 15px 12px;">
+                                            <button style="background: rgba(59,130,246,0.1); color: var(--brand-blue); border: none; padding: 6px 12px; border-radius: 6px; font-weight: 500; font-size: 0.85rem; cursor: pointer; margin-right: 5px;">Modificar Límites</button>
+                                            <button style="background: rgba(239,68,68,0.1); color: #EF4444; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 500; font-size: 0.85rem; cursor: pointer;">Suspender</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
